@@ -13,11 +13,16 @@ import {
 } from "@mantine/core";
 import { IconLock, IconPhoneCall } from "@tabler/icons-react";
 import { useState } from "react";
+import { useAuth } from "../../app/providers/AuthProvider";
 
 interface FormErrors {
   phone?: string;
   password?: string;
   form?: string;
+}
+
+interface LoginPageProps {
+  onSuccess: () => void;
 }
 
 const MIN_PHONE_LENGTH = 9;
@@ -30,7 +35,8 @@ function sanitizePhone(value: string) {
   return `${hasPlus ? "+" : ""}${digits}`;
 }
 
-export default function LoginPage() {
+export default function LoginPage({ onSuccess }: LoginPageProps) {
+  const { login } = useAuth();
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
@@ -84,6 +90,8 @@ export default function LoginPage() {
       });
 
       console.log({ phone, password });
+      login(phone);
+      onSuccess();
     } finally {
       setIsSubmitting(false);
     }
