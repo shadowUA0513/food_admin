@@ -1,20 +1,13 @@
-import { type PropsWithChildren, useEffect } from "react";
+import { Navigate, Outlet } from "react-router-dom";
 
-interface ProtectedRouteProps extends PropsWithChildren {
+interface ProtectedRouteProps {
   isAllowed: boolean;
-  onDeny: () => void;
 }
 
-export function ProtectedRoute({ children, isAllowed, onDeny }: ProtectedRouteProps) {
-  useEffect(() => {
-    if (!isAllowed) {
-      onDeny();
-    }
-  }, [isAllowed, onDeny]);
-
+export function ProtectedRoute({ isAllowed }: ProtectedRouteProps) {
   if (!isAllowed) {
-    return null;
+    return <Navigate to="/login" replace />;
   }
 
-  return children;
+  return <Outlet />;
 }

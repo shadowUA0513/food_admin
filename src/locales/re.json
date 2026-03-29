@@ -1,0 +1,65 @@
+{
+  "common": {
+    "appName": "Food Admin",
+    "dashboard": "Дашборд",
+    "staff": "Сотрудники",
+    "companies": "Компании",
+    "logout": "Выйти",
+    "language": "Язык",
+    "languageRu": "Русский",
+    "languageUz": "O'zbekcha",
+    "addStaff": "Добавить сотрудника",
+    "addCompany": "Добавить компанию"
+  },
+  "login": {
+    "title": "Вход",
+    "subtitle": "Введите номер телефона и пароль.",
+    "phoneLabel": "Номер телефона",
+    "phonePlaceholder": "+998 XX XXX XX XX",
+    "passwordLabel": "Пароль",
+    "passwordPlaceholder": "Введите пароль",
+    "submit": "Войти",
+    "phoneRequired": "Номер телефона обязателен",
+    "phoneInvalidChars": "Используйте только цифры и необязательный + в начале",
+    "phoneInvalidLength": "Введите корректный номер телефона",
+    "passwordRequired": "Пароль обязателен",
+    "passwordTooShort": "Пароль должен быть длиннее 5 символов",
+    "formError": "Пожалуйста, заполните все обязательные поля."
+  },
+  "layout": {
+    "controlPanel": "Панель управления",
+    "adminSession": "Сессия администратора",
+    "noPhone": "Номер не указан",
+    "sidebarNote": "Ссылки в боковом меню работают через react-router-dom, а сверху можно переключать тему.",
+    "toggleColorScheme": "Переключить тему"
+  },
+  "dashboard": {
+    "empty": "Страница дашборда пуста."
+  },
+  "staffPage": {
+    "title": "Сотрудники",
+    "subtitle": "Список команды, смены и текущий статус работы.",
+    "totalStaff": "Всего сотрудников",
+    "onShift": "Сейчас на смене",
+    "newThisMonth": "Новых в этом месяце",
+    "employee": "Сотрудник",
+    "role": "Роль",
+    "status": "Статус",
+    "shift": "Смена",
+    "active": "Активен",
+    "onBreak": "Перерыв",
+    "offline": "Не в сети",
+    "manager": "Менеджер",
+    "cashier": "Кассир",
+    "support": "Поддержка",
+    "courierLead": "Старший курьер"
+  },
+  "companiesPage": {
+    "title": "Компании",
+    "subtitle": "Обзор партнерских компаний и активности их филиалов.",
+    "branchesConnected": "подключенных филиалов",
+    "operationalFillRate": "Уровень операционной загрузки",
+    "active": "Активна",
+    "review": "Проверка"
+  }
+}

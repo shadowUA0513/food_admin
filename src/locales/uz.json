@@ -1,0 +1,65 @@
+{
+  "common": {
+    "appName": "Food Admin",
+    "dashboard": "Dashboard",
+    "staff": "Xodimlar",
+    "companies": "Kompaniyalar",
+    "logout": "Chiqish",
+    "language": "Til",
+    "languageRu": "Русский",
+    "languageUz": "O'zbekcha",
+    "addStaff": "Xodim qo'shish",
+    "addCompany": "Kompaniya qo'shish"
+  },
+  "login": {
+    "title": "Kirish",
+    "subtitle": "Telefon raqamingiz va parolingizni kiriting.",
+    "phoneLabel": "Telefon raqami",
+    "phonePlaceholder": "+998 XX XXX XX XX",
+    "passwordLabel": "Parol",
+    "passwordPlaceholder": "Parolni kiriting",
+    "submit": "Kirish",
+    "phoneRequired": "Telefon raqami kiritilishi shart",
+    "phoneInvalidChars": "Faqat raqamlar va boshida ixtiyoriy + belgisi ishlating",
+    "phoneInvalidLength": "To'g'ri telefon raqamini kiriting",
+    "passwordRequired": "Parol kiritilishi shart",
+    "passwordTooShort": "Parol 5 ta belgidan uzun bo'lishi kerak",
+    "formError": "Iltimos, barcha majburiy maydonlarni to'ldiring."
+  },
+  "layout": {
+    "controlPanel": "Boshqaruv paneli",
+    "adminSession": "Administrator sessiyasi",
+    "noPhone": "Raqam yo'q",
+    "sidebarNote": "Yon menyudagi linklar react-router-dom orqali ishlaydi, yuqoridan esa tema almashtiriladi.",
+    "toggleColorScheme": "Temani almashtirish"
+  },
+  "dashboard": {
+    "empty": "Dashboard sahifasi bo'sh."
+  },
+  "staffPage": {
+    "title": "Xodimlar",
+    "subtitle": "Jamoa a'zolari, smenalar va joriy ish holati.",
+    "totalStaff": "Jami xodimlar",
+    "onShift": "Hozir smenada",
+    "newThisMonth": "Bu oy yangi",
+    "employee": "Xodim",
+    "role": "Lavozim",
+    "status": "Holat",
+    "shift": "Smena",
+    "active": "Faol",
+    "onBreak": "Tanaffusda",
+    "offline": "Offline",
+    "manager": "Menejer",
+    "cashier": "Kassir",
+    "support": "Qo'llab-quvvatlash",
+    "courierLead": "Kuryer rahbari"
+  },
+  "companiesPage": {
+    "title": "Kompaniyalar",
+    "subtitle": "Hamkor kompaniyalar va ularning filiallari faoliyati ko'rinishi.",
+    "branchesConnected": "ta filial ulangan",
+    "operationalFillRate": "Operatsion bandlik darajasi",
+    "active": "Faol",
+    "review": "Ko'rib chiqilmoqda"
+  }
+}

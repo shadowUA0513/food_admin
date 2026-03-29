@@ -1,18 +1,20 @@
 import {
-  Anchor,
   Box,
   Button,
   Center,
-  Group,
   Paper,
   PasswordInput,
+  Select,
   Stack,
   Text,
   TextInput,
   Title,
+  useComputedColorScheme,
 } from "@mantine/core";
 import { IconLock, IconPhoneCall } from "@tabler/icons-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../app/providers/AuthProvider";
 
 interface FormErrors {
@@ -21,11 +23,8 @@ interface FormErrors {
   form?: string;
 }
 
-interface LoginPageProps {
-  onSuccess: () => void;
-}
-
 const MIN_PHONE_LENGTH = 9;
+const MIN_PASSWORD_LENGTH = 6;
 
 function sanitizePhone(value: string) {
   const trimmed = value.trimStart();
@@ -35,8 +34,12 @@ function sanitizePhone(value: string) {
   return `${hasPlus ? "+" : ""}${digits}`;
 }
 
-export default function LoginPage({ onSuccess }: LoginPageProps) {
+export default function LoginPage() {
   const { login } = useAuth();
+  const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
+  const computedColorScheme = useComputedColorScheme("light");
+  const isDark = computedColorScheme === "dark";
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
@@ -55,19 +58,21 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
     const phoneDigits = phone.replace(/\D/g, "");
 
     if (!phone.trim()) {
-      nextErrors.phone = "Phone number is required";
+      nextErrors.phone = t("login.phoneRequired");
     } else if (!/^\+?\d+$/.test(phone)) {
-      nextErrors.phone = "Use only numbers and an optional + at the start";
+      nextErrors.phone = t("login.phoneInvalidChars");
     } else if (phoneDigits.length < MIN_PHONE_LENGTH) {
-      nextErrors.phone = "Enter a valid phone number";
+      nextErrors.phone = t("login.phoneInvalidLength");
     }
 
     if (!password.trim()) {
-      nextErrors.password = "Password is required";
+      nextErrors.password = t("login.passwordRequired");
+    } else if (password.trim().length < MIN_PASSWORD_LENGTH) {
+      nextErrors.password = t("login.passwordTooShort");
     }
 
     if (nextErrors.phone || nextErrors.password) {
-      nextErrors.form = "Please complete all required fields.";
+      nextErrors.form = t("login.formError");
     }
 
     setErrors(nextErrors);
@@ -91,7 +96,7 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
 
       console.log({ phone, password });
       login(phone);
-      onSuccess();
+      navigate("/", { replace: true });
     } finally {
       setIsSubmitting(false);
     }
@@ -102,21 +107,59 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
       mih="100vh"
       px={{ base: "md", sm: "xl" }}
       py={{ base: "xl", md: 40 }}
+      pos="relative"
       style={{
-        background:
-          "radial-gradient(circle at top left, rgba(46, 204, 113, 0.18), transparent 30%), linear-gradient(135deg, #f8fafc 0%, #eef6ff 45%, #f8fafc 100%)",
+        background: isDark
+          ? "radial-gradient(circle at top left, rgba(251, 146, 60, 0.18), transparent 28%), radial-gradient(circle at bottom right, rgba(56, 189, 248, 0.14), transparent 34%), linear-gradient(135deg, #0f172a 0%, #111827 45%, #1e293b 100%)"
+          : "radial-gradient(circle at top left, rgba(46, 204, 113, 0.18), transparent 30%), radial-gradient(circle at bottom right, rgba(59, 130, 246, 0.12), transparent 32%), linear-gradient(135deg, #f8fafc 0%, #eef6ff 45%, #f8fafc 100%)",
       }}
     >
+      <Box
+        pos="absolute"
+        top={{ base: 16, sm: 24 }}
+        right={{ base: 16, sm: 24 }}
+        w={140}
+      >
+        <Select
+          value={i18n.resolvedLanguage ?? i18n.language}
+          onChange={(value) => {
+            if (value === "ru" || value === "uz") {
+              void i18n.changeLanguage(value);
+            }
+          }}
+          data={[
+            { value: "ru", label: t("common.languageRu") },
+            { value: "uz", label: t("common.languageUz") },
+          ]}
+          aria-label={t("common.language")}
+          allowDeselect={false}
+          radius="md"
+        />
+      </Box>
+
       <Center mih="calc(100vh - 80px)">
-        <Paper radius="xl" shadow="lg" withBorder w="100%" maw={460}>
+        <Paper
+          radius="xl"
+          shadow="xl"
+          withBorder
+          w="100%"
+          maw={460}
+          bg={isDark ? "dark.7" : "white"}
+          style={{
+            borderColor: isDark
+              ? "rgba(255, 255, 255, 0.10)"
+              : "var(--mantine-color-gray-2)",
+            backdropFilter: "blur(10px)",
+          }}
+        >
           <Box p={{ base: "lg", sm: "xl" }}>
             <Stack gap="xl">
               <Stack gap={6} ta="center">
                 <Title order={2} fw={800}>
-                  Login
+                  {t("login.title")}
                 </Title>
                 <Text c="dimmed" size="sm">
-                  Enter your phone number and password.
+                  {t("login.subtitle")}
                 </Text>
               </Stack>
 
@@ -125,13 +168,17 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
                 onSubmit={handleSubmit}
                 radius="lg"
                 p={{ base: "md", sm: "lg" }}
-                bg="white"
-                style={{ border: "1px solid var(--mantine-color-gray-2)" }}
+                bg={isDark ? "dark.6" : "gray.0"}
+                style={{
+                  border: isDark
+                    ? "1px solid rgba(255, 255, 255, 0.08)"
+                    : "1px solid var(--mantine-color-gray-2)",
+                }}
               >
                 <Stack gap="md">
                   <TextInput
-                    label="Phone number"
-                    placeholder="+998 XX XXX XX XX"
+                    label={t("login.phoneLabel")}
+                    placeholder={t("login.phonePlaceholder")}
                     value={phone}
                     onChange={(event) => {
                       setPhone(sanitizePhone(event.currentTarget.value));
@@ -143,13 +190,23 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
                     autoComplete="tel"
                     size="md"
                     radius="md"
+                    styles={{
+                      input: {
+                        backgroundColor: isDark
+                          ? "var(--mantine-color-dark-5)"
+                          : undefined,
+                        borderColor: isDark
+                          ? "rgba(255, 255, 255, 0.12)"
+                          : undefined,
+                      },
+                    }}
                     required
                   />
 
                   <Stack gap={6}>
                     <PasswordInput
-                      label="Password"
-                      placeholder="Enter your password"
+                      label={t("login.passwordLabel")}
+                      placeholder={t("login.passwordPlaceholder")}
                       value={password}
                       onChange={(event) => {
                         setPassword(event.currentTarget.value);
@@ -160,6 +217,16 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
                       autoComplete="current-password"
                       size="md"
                       radius="md"
+                      styles={{
+                        input: {
+                          backgroundColor: isDark
+                            ? "var(--mantine-color-dark-5)"
+                            : undefined,
+                          borderColor: isDark
+                            ? "rgba(255, 255, 255, 0.12)"
+                            : undefined,
+                        },
+                      }}
                       required
                     />
                   </Stack>
@@ -177,7 +244,7 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
                     radius="md"
                     loading={isSubmitting}
                   >
-                    Login
+                    {t("login.submit")}
                   </Button>
                 </Stack>
               </Paper>
