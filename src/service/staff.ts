@@ -1,0 +1,73 @@
+import { AxiosError } from "axios";
+import { api } from "./api";
+
+export type StaffRole = "admin" | "super_admin";
+
+export interface StaffUser {
+  id: string;
+  full_name: string;
+  phone_number: string;
+  role: StaffRole;
+  tg_id: number;
+  tg_user_name: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateStaffPayload {
+  full_name: string;
+  phone_number: string;
+  password: string;
+  role: StaffRole;
+}
+
+interface StaffListResponse {
+  data?: {
+    count: number;
+    users?: StaffUser[];
+  };
+}
+
+interface StaffCreateResponse {
+  user: StaffUser;
+}
+
+function getErrorMessage(error: unknown, fallback: string) {
+  const axiosError = error as AxiosError<{ message?: string }>;
+  return axiosError.response?.data?.message ?? fallback;
+}
+
+export async function getStaffUsers() {
+  try {
+    const { data } = await api.get<StaffListResponse>("/api/v1/users");
+    return data.data?.users ?? [];
+  } catch (error) {
+    throw new Error(getErrorMessage(error, "Failed to load staff."));
+  }
+}
+
+export async function getStaffUserById(id: string) {
+  try {
+    const { data } = await api.get<StaffUser>(`/api/v1/users/${id}`);
+    return data;
+  } catch (error) {
+    throw new Error(getErrorMessage(error, "Failed to load the staff member."));
+  }
+}
+
+export async function createStaffUser(payload: CreateStaffPayload) {
+  try {
+    const { data } = await api.post<StaffCreateResponse>("/api/v1/users", payload);
+    return data.user;
+  } catch (error) {
+    throw new Error(getErrorMessage(error, "Failed to create staff member."));
+  }
+}
+
+export async function deleteStaffUser(id: string) {
+  try {
+    await api.delete(`/api/v1/users/${id}`);
+  } catch (error) {
+    throw new Error(getErrorMessage(error, "Failed to delete staff member."));
+  }
+}

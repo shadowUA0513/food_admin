@@ -35,7 +35,7 @@ function sanitizePhone(value: string) {
 }
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, isLoading } = useAuth();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const computedColorScheme = useComputedColorScheme("light");
@@ -43,8 +43,6 @@ export default function LoginPage() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
   const clearFieldError = (field: keyof FormErrors) => {
     setErrors((current) => ({
       ...current,
@@ -87,18 +85,14 @@ export default function LoginPage() {
       return;
     }
 
-    setIsSubmitting(true);
-
     try {
-      await new Promise((resolve) => {
-        window.setTimeout(resolve, 900);
-      });
-
-      console.log({ phone, password });
-      login(phone);
+      await login({ phone, password });
       navigate("/", { replace: true });
-    } finally {
-      setIsSubmitting(false);
+    } catch (error) {
+      setErrors((current) => ({
+        ...current,
+        form: error instanceof Error ? error.message : t("login.formError"),
+      }));
     }
   };
 
@@ -242,7 +236,7 @@ export default function LoginPage() {
                     fullWidth
                     size="md"
                     radius="md"
-                    loading={isSubmitting}
+                    loading={isLoading}
                   >
                     {t("login.submit")}
                   </Button>

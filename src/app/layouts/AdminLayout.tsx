@@ -31,7 +31,7 @@ import { useAuth } from "../providers/AuthProvider";
 
 export function AdminLayout() {
   const [opened, { toggle, close }] = useDisclosure(false);
-  const { logout, phone } = useAuth();
+  const { logout, phone, user } = useAuth();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
@@ -58,7 +58,12 @@ export function AdminLayout() {
       <AppShell.Header>
         <Group h="100%" px="lg" justify="space-between">
           <Group gap="sm">
-            <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
+            <Burger
+              opened={opened}
+              onClick={toggle}
+              hiddenFrom="sm"
+              size="sm"
+            />
             <Box>
               <Text size="xs" tt="uppercase" fw={700} c="dimmed">
                 {t("common.appName")}
@@ -110,11 +115,8 @@ export function AdminLayout() {
           <Stack gap="md">
             <Paper withBorder radius="xl" p="md">
               <Group wrap="nowrap">
-                <Avatar color="orange" radius="xl">
-                  {phone?.slice(-2) ?? "FA"}
-                </Avatar>
                 <div>
-                  <Text fw={700}>{t("layout.adminSession")}</Text>
+                  <Text fw={700}>{user?.full_name}</Text>
                   <Text size="sm" c="dimmed">
                     {phone ?? t("layout.noPhone")}
                   </Text>
@@ -153,7 +155,7 @@ export function AdminLayout() {
           <Box>
             <Divider mb="md" />
             <Text size="sm" c="dimmed">
-              {t("layout.sidebarNote")}
+              {/* {t("layout.sidebarNote")} */}
             </Text>
           </Box>
         </Stack>
