@@ -11,6 +11,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { PhoneNumberInput } from "../../components/common/PhoneNumberInput";
 import { useCreateStaffUser } from "../../service/staff";
 import type { CreateStaffPayload, StaffRole } from "../../types/staff";
@@ -23,11 +24,6 @@ import {
   UZBEKISTAN_PHONE_PREFIX,
 } from "../../utils/phone";
 
-interface AddStaffProps {
-  opened: boolean;
-  onClose: () => void;
-}
-
 interface FormErrors {
   full_name?: string;
   phone_number?: string;
@@ -38,8 +34,9 @@ interface FormErrors {
 
 const MIN_PASSWORD_LENGTH = 6;
 
-export default function AddStaff({ opened, onClose }: AddStaffProps) {
+export default function AddStaff() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const createStaffMutation = useCreateStaffUser();
   const [errors, setErrors] = useState<FormErrors>({});
@@ -61,8 +58,8 @@ export default function AddStaff({ opened, onClose }: AddStaffProps) {
   };
 
   const handleClose = () => {
-    onClose();
     resetForm();
+    navigate("/staff");
   };
 
   const validateForm = () => {
@@ -125,7 +122,7 @@ export default function AddStaff({ opened, onClose }: AddStaffProps) {
 
   return (
     <Modal
-      opened={opened}
+      opened
       onClose={handleClose}
       title={t("staffPage.createModalTitle")}
       centered

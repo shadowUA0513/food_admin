@@ -2,17 +2,20 @@ import {
   Alert,
   Button,
   Group,
+  Loader,
   Modal,
   PasswordInput,
   Select,
   Stack,
+  Text,
   TextInput,
 } from "@mantine/core";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { PhoneNumberInput } from "../../components/common/PhoneNumberInput";
-import { useUpdateStaffUser } from "../../service/staff";
+import { useStaffUserById, useUpdateStaffUser } from "../../service/staff";
 import type { StaffRole, StaffUser, UpdateStaffPayload } from "../../types/staff";
 import {
   showErrorNotification,
@@ -22,12 +25,6 @@ import {
   hasCompleteUzbekistanPhone,
   UZBEKISTAN_PHONE_PREFIX,
 } from "../../utils/phone";
-
-interface EditStaffProps {
-  opened: boolean;
-  onClose: () => void;
-  staff: StaffUser | null;
-}
 
 interface FormErrors {
   full_name?: string;
@@ -39,14 +36,20 @@ interface FormErrors {
 
 const MIN_PASSWORD_LENGTH = 6;
 
-export default function EditStaff({
-  opened,
-  onClose,
-  staff,
-}: EditStaffProps) {
+export default function EditStaff() {
   const { t } = useTranslation();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { staffId } = useParams();
   const queryClient = useQueryClient();
   const updateStaffMutation = useUpdateStaffUser();
+  const locationStaff = (location.state as { staff?: StaffUser } | null)?.staff;
+  const {
+    data: fetchedStaff,
+    isLoading,
+    error,
+  } = useStaffUserById(staffId);
+  const staff = locationStaff ?? fetchedStaff;
   const [errors, setErrors] = useState<FormErrors>({});
   const [form, setForm] = useState<UpdateStaffPayload>({
     full_name: "",
@@ -70,8 +73,8 @@ export default function EditStaff({
   }, [staff]);
 
   const handleClose = () => {
-    onClose();
     setErrors({});
+    navigate("/staff");
   };
 
   const validateForm = () => {
@@ -105,7 +108,7 @@ export default function EditStaff({
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!staff || !validateForm()) {
+    if (!staffId || !validateForm()) {
       return;
     }
 
@@ -118,8 +121,9 @@ export default function EditStaff({
     };
 
     try {
-      await updateStaffMutation.mutateAsync({ id: staff.id, payload });
+      await updateStaffMutation.mutateAsync({ id: staffId, payload });
       await queryClient.invalidateQueries({ queryKey: ["staff-users"] });
+      await queryClient.invalidateQueries({ queryKey: ["staff-user", staffId] });
       showSuccessNotification({
         message: "Staff member updated successfully.",
       });
@@ -140,11 +144,28 @@ export default function EditStaff({
 
   return (
     <Modal
-      opened={opened}
+      opened
       onClose={handleClose}
       title={t("staffPage.editModalTitle")}
       centered
     >
+      {error ? (
+        <Stack gap="md">
+          <Alert color="red" variant="light">
+            {error.message || t("staffPage.loadError")}
+          </Alert>
+          <Group justify="flex-end">
+            <Button variant="default" onClick={handleClose}>
+              {t("staffPage.cancel")}
+            </Button>
+          </Group>
+        </Stack>
+      ) : isLoading && !staff ? (
+        <Stack align="center" gap="sm" py="md">
+          <Loader />
+          <Text c="dimmed">{t("staffPage.loading")}</Text>
+        </Stack>
+      ) : (
       <form onSubmit={handleSubmit}>
         <Stack gap="md">
           <TextInput
@@ -248,6 +269,7 @@ export default function EditStaff({
           </Group>
         </Stack>
       </form>
+      )}
     </Modal>
   );
 }

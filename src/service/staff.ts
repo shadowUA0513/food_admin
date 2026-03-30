@@ -7,7 +7,7 @@ import type {
   StaffUser,
   UpdateStaffPayload,
 } from "../types/staff";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 
 function getErrorMessage(error: unknown, fallback: string) {
@@ -27,15 +27,29 @@ export const useStaffUsers = () => {
   return useQuery({
     queryKey: ["staff-users"],
     queryFn: getStaffUsers,
+    refetchOnWindowFocus: false,
   });
 };
 
 
 export const useStaffUserById = (id?: string) => {
+  const queryClient = useQueryClient();
+
   return useQuery({
-    queryKey: ["staff-user", id], 
-    queryFn: () => getStaffUserById(id!), 
-    enabled: !!id, 
+    queryKey: ["staff-user", id],
+    queryFn: () => getStaffUserById(id!),
+    enabled: !!id,
+    refetchOnWindowFocus: false,
+    initialData: () => {
+      if (!id) {
+        return undefined;
+      }
+
+      const cachedStaff =
+        queryClient.getQueryData<StaffUser[]>(["staff-users"]) ?? [];
+
+      return cachedStaff.find((member) => member.id === id);
+    },
   });
 };
 

@@ -79,5 +79,31 @@
     "operationalFillRate": "Operatsion bandlik darajasi",
     "active": "Faol",
     "review": "Ko'rib chiqilmoqda"
+  },
+  "companyDetails": {
+    "back": "Orqaga",
+    "category": "Kategoriya",
+    "product": "Mahsulot",
+    "loading": "Kompaniya yuklanmoqda...",
+    "loadError": "Kompaniyani yuklab bo'lmadi.",
+    "categoryPage": "Kategoriya sahifasi",
+    "productPage": "Mahsulot sahifasi",
+    "categoryTitle": "Kategoriyalar",
+    "categorySubtitle": "Kompaniya uchun kategoriyalarni boshqaring.",
+    "productTitle": "Mahsulotlar",
+    "productSubtitle": "Kompaniya mahsulotlarini boshqaring.",
+    "addCategory": "Kategoriya qo'shish",
+    "editCategory": "Kategoriyani tahrirlash",
+    "addProduct": "Mahsulot qo'shish",
+    "editProduct": "Mahsulotni tahrirlash",
+    "categoryName": "Kategoriya nomi",
+    "categoryPlaceholder": "Masalan, Burgerlar",
+    "productName": "Mahsulot nomi",
+    "productPlaceholder": "Masalan, Cheese Burger",
+    "price": "Narx",
+    "productCount_one": "{{count}} ta mahsulot",
+    "productCount_other": "{{count}} ta mahsulot",
+    "active": "Faol",
+    "draft": "Qoralama"
   }
 }

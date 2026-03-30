@@ -18,21 +18,17 @@ import { useQueryClient } from "@tanstack/react-query";
 import { IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { useDeleteStaffUser, useStaffUsers } from "../../service/staff";
 import type { StaffUser } from "../../types/staff";
 import {
   showErrorNotification,
   showSuccessNotification,
 } from "../../utils/notifications";
-import AddStaff from "./AddStaff";
-import EditStaff from "./EditStaff";
 
 export default function StaffPage() {
   const { t } = useTranslation();
-  const location = useLocation();
   const navigate = useNavigate();
-  const { staffId } = useParams();
   const queryClient = useQueryClient();
   const [deleteOpened, { open: openDelete, close: closeDelete }] =
     useDisclosure(false);
@@ -41,7 +37,6 @@ export default function StaffPage() {
 
   const { data, isLoading, error } = useStaffUsers();
   const deleteStaffMutation = useDeleteStaffUser();
-  const editingStaff = data?.find((member) => member.id === staffId) ?? null;
 
   const handleDeleteSuccess = async () => {
     await queryClient.invalidateQueries({ queryKey: ["staff-users"] });
@@ -81,19 +76,7 @@ export default function StaffPage() {
 
   return (
     <Stack gap="lg">
-      <AddStaff
-        opened={location.pathname === "/staff/add"}
-        onClose={() => {
-          navigate("/staff");
-        }}
-      />
-      <EditStaff
-        opened={Boolean(staffId && editingStaff)}
-        onClose={() => {
-          navigate("/staff");
-        }}
-        staff={editingStaff}
-      />
+      <Outlet />
 
       <Modal
         opened={deleteOpened}
@@ -259,7 +242,9 @@ export default function StaffPage() {
                         aria-label="Edit"
                         title="Edit"
                         onClick={() => {
-                          navigate(`/staff/edit/${member.id}`);
+                          navigate(`/staff/edit/${member.id}`, {
+                            state: { staff: member },
+                          });
                         }}
                       >
                         <IconPencil size={18} />
