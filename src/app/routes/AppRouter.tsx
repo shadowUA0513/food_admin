@@ -15,12 +15,18 @@ export function AppRouter() {
       <Routes>
         <Route
           path="/login"
-          element={isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />}
+          element={
+            isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />
+          }
         />
         <Route element={<ProtectedRoute isAllowed={isAuthenticated} />}>
           <Route element={<AdminLayout />}>
             <Route path="/" element={<HomePage />} />
-            <Route path="/staff" element={<StaffPage />} />
+            <Route path="/staff">
+              <Route index element={<StaffPage />} />
+              <Route path="add" element={<StaffPage />} />
+              <Route path="edit/:staffId" element={<StaffPage />} />
+            </Route>
             <Route path="/companies" element={<CompaniesPage />} />
           </Route>
         </Route>
