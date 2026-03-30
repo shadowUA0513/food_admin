@@ -54,15 +54,15 @@ export default function AddCategory() {
     const nextErrors: FormErrors = {};
 
     if (!form.name_uz.trim()) {
-      nextErrors.name_uz = "Uzbek name is required.";
+      nextErrors.name_uz = t("companyDetails.categoryNameUzRequired");
     }
 
     if (!form.name_ru.trim()) {
-      nextErrors.name_ru = "Russian name is required.";
+      nextErrors.name_ru = t("companyDetails.categoryNameRuRequired");
     }
 
     if (!Number.isFinite(form.sort_order)) {
-      nextErrors.sort_order = "Sort order is required.";
+      nextErrors.sort_order = t("companyDetails.sortOrderRequired");
     }
 
     setErrors(nextErrors);
@@ -87,14 +87,14 @@ export default function AddCategory() {
       await createCategoryMutation.mutateAsync(payload);
       await queryClient.invalidateQueries({ queryKey: ["categories", companyId] });
       showSuccessNotification({
-        message: "Category created successfully.",
+        message: t("companyDetails.categoryCreateSuccess"),
       });
       handleClose();
     } catch (createError) {
       const message =
         createError instanceof Error
           ? createError.message
-          : "Failed to create category.";
+          : t("companyDetails.categoryCreateError");
 
       showErrorNotification({ message });
       setErrors((current) => ({
@@ -114,8 +114,8 @@ export default function AddCategory() {
       <form onSubmit={handleSubmit}>
         <Stack gap="md">
           <TextInput
-            label="Category name (UZ)"
-            placeholder="ichimliklar"
+            label={t("companyDetails.categoryNameUz")}
+            placeholder={t("companyDetails.categoryNameUzPlaceholder")}
             value={form.name_uz}
             onChange={(event) => {
               const value = event.currentTarget.value;
@@ -135,8 +135,8 @@ export default function AddCategory() {
           />
 
           <TextInput
-            label="Category name (RU)"
-            placeholder="напитки"
+            label={t("companyDetails.categoryNameRu")}
+            placeholder={t("companyDetails.categoryNameRuPlaceholder")}
             value={form.name_ru}
             onChange={(event) => {
               const value = event.currentTarget.value;
@@ -156,7 +156,7 @@ export default function AddCategory() {
           />
 
           <NumberInput
-            label="Sort order"
+            label={t("companyDetails.sortOrder")}
             value={form.sort_order}
             onChange={(value) => {
               setForm((current) => ({

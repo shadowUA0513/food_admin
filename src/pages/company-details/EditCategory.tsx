@@ -11,6 +11,7 @@ import {
 } from "@mantine/core";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   useCategoryById,
@@ -37,6 +38,7 @@ const EMPTY_FORM: UpdateCategoryPayload = {
 };
 
 export default function EditCategory() {
+  const { t } = useTranslation();
   const { companyId, categoryId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -76,15 +78,15 @@ export default function EditCategory() {
     const nextErrors: FormErrors = {};
 
     if (!form.name_uz.trim()) {
-      nextErrors.name_uz = "Uzbek name is required.";
+      nextErrors.name_uz = t("companyDetails.categoryNameUzRequired");
     }
 
     if (!form.name_ru.trim()) {
-      nextErrors.name_ru = "Russian name is required.";
+      nextErrors.name_ru = t("companyDetails.categoryNameRuRequired");
     }
 
     if (!Number.isFinite(form.sort_order)) {
-      nextErrors.sort_order = "Sort order is required.";
+      nextErrors.sort_order = t("companyDetails.sortOrderRequired");
     }
 
     setErrors(nextErrors);
@@ -113,14 +115,14 @@ export default function EditCategory() {
         queryKey: ["category", companyId, categoryId],
       });
       showSuccessNotification({
-        message: "Category updated successfully.",
+        message: t("companyDetails.categoryUpdateSuccess"),
       });
       handleClose();
     } catch (updateError) {
       const message =
         updateError instanceof Error
           ? updateError.message
-          : "Failed to update category.";
+          : t("companyDetails.categoryUpdateError");
 
       setErrors((current) => ({
         ...current,
@@ -131,29 +133,34 @@ export default function EditCategory() {
   };
 
   return (
-    <Modal opened onClose={handleClose} title="Edit category" centered>
+    <Modal
+      opened
+      onClose={handleClose}
+      title={t("companyDetails.editCategory")}
+      centered
+    >
       {error ? (
         <Stack gap="md">
           <Alert color="red" variant="light">
-            {error.message || "Failed to load the category."}
+            {error.message || t("companyDetails.categoryLoadError")}
           </Alert>
           <Group justify="flex-end">
             <Button variant="default" onClick={handleClose}>
-              Cancel
+              {t("staffPage.cancel")}
             </Button>
           </Group>
         </Stack>
       ) : isLoading && !category ? (
         <Stack align="center" gap="sm" py="md">
           <Loader />
-          <Text c="dimmed">Loading category...</Text>
+          <Text c="dimmed">{t("companyDetails.categoryLoading")}</Text>
         </Stack>
       ) : (
         <form onSubmit={handleSubmit}>
           <Stack gap="md">
             <TextInput
-              label="Category name (UZ)"
-              placeholder="ichimliklar"
+              label={t("companyDetails.categoryNameUz")}
+              placeholder={t("companyDetails.categoryNameUzPlaceholder")}
               value={form.name_uz}
               onChange={(event) => {
                 const value = event.currentTarget.value;
@@ -173,8 +180,8 @@ export default function EditCategory() {
             />
 
             <TextInput
-              label="Category name (RU)"
-              placeholder="напитки"
+              label={t("companyDetails.categoryNameRu")}
+              placeholder={t("companyDetails.categoryNameRuPlaceholder")}
               value={form.name_ru}
               onChange={(event) => {
                 const value = event.currentTarget.value;
@@ -194,7 +201,7 @@ export default function EditCategory() {
             />
 
             <NumberInput
-              label="Sort order"
+              label={t("companyDetails.sortOrder")}
               value={form.sort_order}
               onChange={(value) => {
                 setForm((current) => ({
@@ -220,10 +227,10 @@ export default function EditCategory() {
 
             <Group justify="flex-end">
               <Button variant="default" onClick={handleClose}>
-                Cancel
+                {t("staffPage.cancel")}
               </Button>
               <Button type="submit" loading={updateCategoryMutation.isPending}>
-                Save
+                {t("staffPage.saveButton")}
               </Button>
             </Group>
           </Stack>

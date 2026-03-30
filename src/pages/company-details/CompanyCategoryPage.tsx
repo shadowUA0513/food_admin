@@ -26,10 +26,7 @@ import {
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
-import {
-  useCategories,
-  useDeleteCategory,
-} from "../../service/categories";
+import { useCategories, useDeleteCategory } from "../../service/categories";
 import type { Category } from "../../types/categories";
 import {
   showErrorNotification,
@@ -46,16 +43,19 @@ export default function CompanyCategoryPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebouncedValue(search, 400);
   const [page, setPage] = useState(1);
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
+    null,
+  );
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteOpened, { open: openDelete, close: closeDelete }] =
     useDisclosure(false);
 
-  const {
-    data,
-    isLoading,
-    error,
-  } = useCategories(companyId, ITEMS_PER_PAGE, page, debouncedSearch.trim());
+  const { data, isLoading, error } = useCategories(
+    companyId,
+    ITEMS_PER_PAGE,
+    page,
+    debouncedSearch.trim(),
+  );
   const deleteCategoryMutation = useDeleteCategory();
 
   const categories = data?.categories ?? [];
@@ -90,7 +90,9 @@ export default function CompanyCategoryPage() {
     try {
       setDeletingId(selectedCategory.id);
       await deleteCategoryMutation.mutateAsync(selectedCategory.id);
-      await queryClient.invalidateQueries({ queryKey: ["categories", companyId] });
+      await queryClient.invalidateQueries({
+        queryKey: ["categories", companyId],
+      });
       await queryClient.invalidateQueries({
         queryKey: ["category", companyId, selectedCategory.id],
       });
@@ -251,7 +253,7 @@ export default function CompanyCategoryPage() {
                             onClick={() => {
                               navigate(
                                 `/companies/${companyId}/category/edit/${category.id}`,
-                                { state: { category } }
+                                { state: { category } },
                               );
                             }}
                           >
