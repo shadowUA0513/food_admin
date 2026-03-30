@@ -1,6 +1,12 @@
 import { AxiosError } from "axios";
 import { api } from "./api";
-import type { CreateStaffPayload, StaffCreateResponse, StaffListResponse, StaffUser } from "../types/staff";
+import type {
+  CreateStaffPayload,
+  StaffCreateResponse,
+  StaffListResponse,
+  StaffUser,
+  UpdateStaffPayload,
+} from "../types/staff";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 
@@ -51,6 +57,18 @@ export async function createStaffUser(payload: CreateStaffPayload) {
   }
 }
 
+export async function updateStaffUser(id: string, payload: UpdateStaffPayload) {
+  try {
+    const { data } = await api.put<StaffCreateResponse>(
+      `/api/v1/users/${id}`,
+      payload,
+    );
+    return data.user;
+  } catch (error) {
+    throw new Error(getErrorMessage(error, "Failed to update staff member."));
+  }
+}
+
 export async function deleteStaffUser(id: string) {
   try {
     await api.delete(`/api/v1/users/${id}`);
@@ -62,6 +80,11 @@ export async function deleteStaffUser(id: string) {
 export const useCreateStaffUser = () =>
   useMutation<StaffUser, Error, CreateStaffPayload>({
     mutationFn: createStaffUser,
+  });
+
+export const useUpdateStaffUser = () =>
+  useMutation<StaffUser, Error, { id: string; payload: UpdateStaffPayload }>({
+    mutationFn: ({ id, payload }) => updateStaffUser(id, payload),
   });
 
 export const useDeleteStaffUser = () =>

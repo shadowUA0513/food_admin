@@ -18,6 +18,13 @@ export interface CreateStaffPayload {
   role: StaffRole;
 }
 
+export interface UpdateStaffPayload {
+  full_name: string;
+  phone_number: string;
+  password?: string;
+  role: StaffRole;
+}
+
 export interface StaffListResponse {
   data?: {
     count: number;
