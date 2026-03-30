@@ -53,6 +53,7 @@
     "cancel": "Отмена",
     "phoneColumn": "Телефон",
     "createdAt": "Создан",
+    "actions": "Действия",
     "adminCount": "Admins",
     "superAdminCount": "Super admins",
     "loading": "Загрузка сотрудников...",

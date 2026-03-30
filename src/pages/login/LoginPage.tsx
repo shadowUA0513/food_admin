@@ -7,7 +7,6 @@ import {
   Select,
   Stack,
   Text,
-  TextInput,
   Title,
   useComputedColorScheme,
 } from "@mantine/core";
@@ -16,6 +15,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../app/providers/AuthProvider";
+import { PhoneNumberInput } from "../../components/common/PhoneNumberInput";
+import {
+  hasCompleteUzbekistanPhone,
+  UZBEKISTAN_PHONE_PREFIX,
+} from "../../utils/phone";
 
 interface FormErrors {
   phone?: string;
@@ -23,16 +27,7 @@ interface FormErrors {
   form?: string;
 }
 
-const MIN_PHONE_LENGTH = 9;
 const MIN_PASSWORD_LENGTH = 6;
-
-function sanitizePhone(value: string) {
-  const trimmed = value.trimStart();
-  const hasPlus = trimmed.startsWith("+");
-  const digits = value.replace(/\D/g, "");
-
-  return `${hasPlus ? "+" : ""}${digits}`;
-}
 
 export default function LoginPage() {
   const { login, isLoading } = useAuth();
@@ -40,7 +35,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const computedColorScheme = useComputedColorScheme("light");
   const isDark = computedColorScheme === "dark";
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState(UZBEKISTAN_PHONE_PREFIX);
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
   const clearFieldError = (field: keyof FormErrors) => {
@@ -53,13 +48,10 @@ export default function LoginPage() {
 
   const validate = () => {
     const nextErrors: FormErrors = {};
-    const phoneDigits = phone.replace(/\D/g, "");
 
-    if (!phone.trim()) {
+    if (!phone.trim() || phone === UZBEKISTAN_PHONE_PREFIX) {
       nextErrors.phone = t("login.phoneRequired");
-    } else if (!/^\+?\d+$/.test(phone)) {
-      nextErrors.phone = t("login.phoneInvalidChars");
-    } else if (phoneDigits.length < MIN_PHONE_LENGTH) {
+    } else if (!hasCompleteUzbekistanPhone(phone)) {
       nextErrors.phone = t("login.phoneInvalidLength");
     }
 
@@ -170,18 +162,16 @@ export default function LoginPage() {
                 }}
               >
                 <Stack gap="md">
-                  <TextInput
+                  <PhoneNumberInput
                     label={t("login.phoneLabel")}
                     placeholder={t("login.phonePlaceholder")}
                     value={phone}
-                    onChange={(event) => {
-                      setPhone(sanitizePhone(event.currentTarget.value));
+                    onChange={(value) => {
+                      setPhone(value);
                       clearFieldError("phone");
                     }}
                     error={errors.phone}
                     leftSection={<IconPhoneCall size={16} stroke={1.8} />}
-                    inputMode="tel"
-                    autoComplete="tel"
                     size="md"
                     radius="md"
                     styles={{

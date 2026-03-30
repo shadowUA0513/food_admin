@@ -1,36 +1,8 @@
 import { AxiosError } from "axios";
 import { api } from "./api";
+import type { CreateStaffPayload, StaffCreateResponse, StaffListResponse, StaffUser } from "../types/staff";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
-export type StaffRole = "admin" | "super_admin";
-
-export interface StaffUser {
-  id: string;
-  full_name: string;
-  phone_number: string;
-  role: StaffRole;
-  tg_id: number;
-  tg_user_name: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CreateStaffPayload {
-  full_name: string;
-  phone_number: string;
-  password: string;
-  role: StaffRole;
-}
-
-interface StaffListResponse {
-  data?: {
-    count: number;
-    users?: StaffUser[];
-  };
-}
-
-interface StaffCreateResponse {
-  user: StaffUser;
-}
 
 function getErrorMessage(error: unknown, fallback: string) {
   const axiosError = error as AxiosError<{ message?: string }>;
@@ -45,6 +17,21 @@ export async function getStaffUsers() {
     throw new Error(getErrorMessage(error, "Failed to load staff."));
   }
 }
+export const useStaffUsers = () => {
+  return useQuery({
+    queryKey: ["staff-users"],
+    queryFn: getStaffUsers,
+  });
+};
+
+
+export const useStaffUserById = (id?: string) => {
+  return useQuery({
+    queryKey: ["staff-user", id], 
+    queryFn: () => getStaffUserById(id!), 
+    enabled: !!id, 
+  });
+};
 
 export async function getStaffUserById(id: string) {
   try {
@@ -71,3 +58,13 @@ export async function deleteStaffUser(id: string) {
     throw new Error(getErrorMessage(error, "Failed to delete staff member."));
   }
 }
+
+export const useCreateStaffUser = () =>
+  useMutation<StaffUser, Error, CreateStaffPayload>({
+    mutationFn: createStaffUser,
+  });
+
+export const useDeleteStaffUser = () =>
+  useMutation<void, Error, string>({
+    mutationFn: deleteStaffUser,
+  });
