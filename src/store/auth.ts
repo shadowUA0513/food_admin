@@ -1,7 +1,9 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { AUTH_COOKIE_KEY } from "../service/api/constant";
-import { loginRequest, type LoginPayload, type LoginUser } from "../service/auth";
+import { AUTH_STORAGE_KEY } from "../service/api/constant";
+import { clearAuthSession, setAuthCookie } from "../service/api/session";
+import { loginRequest } from "../service/auth";
+import type { LoginPayload, LoginUser } from "../types/auth";
 
 interface AuthStore {
   isAuthenticated: boolean;
@@ -10,15 +12,6 @@ interface AuthStore {
   isLoading: boolean;
   login: (payload: LoginPayload) => Promise<void>;
   logout: () => void;
-}
-
-function setCookie(name: string, value: string, days = 7) {
-  const expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
-  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
-}
-
-function clearCookie(name: string) {
-  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax`;
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -35,7 +28,7 @@ export const useAuthStore = create<AuthStore>()(
           const session = await loginRequest(payload);
 
           if (session.token) {
-            setCookie(AUTH_COOKIE_KEY, session.token);
+            setAuthCookie(session.token);
           }
 
           set({
@@ -50,7 +43,7 @@ export const useAuthStore = create<AuthStore>()(
         }
       },
       logout: () => {
-        clearCookie(AUTH_COOKIE_KEY);
+        clearAuthSession();
         set({
           isAuthenticated: false,
           phone: null,
@@ -60,7 +53,7 @@ export const useAuthStore = create<AuthStore>()(
       },
     }),
     {
-      name: "food-admin-auth",
+      name: AUTH_STORAGE_KEY,
       partialize: (state) => ({
         isAuthenticated: state.isAuthenticated,
         phone: state.phone,

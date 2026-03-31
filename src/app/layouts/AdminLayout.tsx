@@ -1,7 +1,6 @@
 import {
   ActionIcon,
   AppShell,
-  Avatar,
   Box,
   Burger,
   Button,
