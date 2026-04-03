@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { api } from "./api";
+import { useAuthStore } from "../store/auth";
 import type {
   Category,
   CategoryListResponse,
@@ -22,18 +23,24 @@ function extractCategory(payload: Category | CategoryResponse) {
   return payload.data ?? payload.category;
 }
 
+function getActiveCompanyId(companyId?: string) {
+  return companyId ?? useAuthStore.getState().company?.id;
+}
+
 export function useCategories(
   companyId?: string,
   limit = 10,
   page = 1,
   query = ""
 ) {
+  const resolvedCompanyId = getActiveCompanyId(companyId);
+
   return useQuery({
-    queryKey: ["categories", companyId, limit, page, query],
+    queryKey: ["categories", resolvedCompanyId, limit, page, query],
     queryFn: async () => {
       try {
         const { data } = await api.get<CategoryListResponse>(
-          `/api/v1/company/${companyId}/categories`,
+          `/api/v1/company/${resolvedCompanyId}/categories`,
           {
             params: { limit, page, query },
           }
@@ -47,20 +54,21 @@ export function useCategories(
         throw new Error(getErrorMessage(error, "Failed to load categories."));
       }
     },
-    enabled: Boolean(companyId),
+    enabled: Boolean(resolvedCompanyId),
     refetchOnWindowFocus: false,
   });
 }
 
 export function useCategoryById(companyId?: string, id?: string) {
   const queryClient = useQueryClient();
+  const resolvedCompanyId = getActiveCompanyId(companyId);
 
   return useQuery({
-    queryKey: ["category", companyId, id],
+    queryKey: ["category", resolvedCompanyId, id],
     queryFn: async () => {
       try {
         const { data } = await api.get<Category | CategoryResponse>(
-          `/api/v1/company/${companyId}/category/${id}`
+          `/api/v1/company/${resolvedCompanyId}/category/${id}`
         );
         const category = extractCategory(data);
 
@@ -73,7 +81,7 @@ export function useCategoryById(companyId?: string, id?: string) {
         throw new Error(getErrorMessage(error, "Failed to load the category."));
       }
     },
-    enabled: Boolean(companyId && id),
+    enabled: Boolean(resolvedCompanyId && id),
     refetchOnWindowFocus: false,
     initialData: () => {
       if (!id) {
@@ -103,10 +111,19 @@ export function useCategoryById(companyId?: string, id?: string) {
 export const useCreateCategory = () =>
   useMutation<Category, Error, CreateCategoryPayload>({
     mutationFn: async (payload) => {
+      const companyId = getActiveCompanyId(payload.company_id);
+
+      if (!companyId) {
+        throw new Error("Company id is required.");
+      }
+
       try {
         const { data } = await api.post<Category | CategoryResponse>(
-          `/api/v1/company/${payload.company_id}/category`,
-          payload
+          `/api/v1/company/${companyId}/category`,
+          {
+            ...payload,
+            company_id: companyId,
+          }
         );
         const category = extractCategory(data);
 
@@ -124,10 +141,19 @@ export const useCreateCategory = () =>
 export const useUpdateCategory = () =>
   useMutation<Category, Error, { id: string; payload: UpdateCategoryPayload }>({
     mutationFn: async ({ id, payload }) => {
+      const companyId = getActiveCompanyId(payload.company_id);
+
+      if (!companyId) {
+        throw new Error("Company id is required.");
+      }
+
       try {
         const { data } = await api.put<Category | CategoryResponse>(
           `/api/v1/company/category/${id}`,
-          payload
+          {
+            ...payload,
+            company_id: companyId,
+          }
         );
         const category = extractCategory(data);
 

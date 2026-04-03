@@ -1,6 +1,7 @@
 import {
   Alert,
   Button,
+  FileInput,
   Group,
   Modal,
   NumberInput,
@@ -14,7 +15,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
+import { useActiveCompanyId } from "../../app/providers/AuthProvider";
 import { useCategories } from "../../service/categories";
+import { uploadImage } from "../../service/images";
 import { useCreateProduct } from "../../service/products";
 import type { CreateProductPayload } from "../../types/products";
 import {
@@ -45,13 +48,15 @@ const EMPTY_FORM = {
 
 export default function AddProduct() {
   const { t } = useTranslation();
-  const { companyId } = useParams();
+  const { companyId: routeCompanyId } = useParams();
+  const companyId = useActiveCompanyId(routeCompanyId);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const createProductMutation = useCreateProduct();
   const { data: categoriesData } = useCategories(companyId, 1000, 1, "");
   const [form, setForm] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const categoryOptions = (categoriesData?.categories ?? []).map((category) => ({
     value: category.id,
@@ -65,7 +70,53 @@ export default function AddProduct() {
 
   const handleClose = () => {
     resetForm();
-    navigate(`/companies/${companyId}/product`);
+    navigate(companyId ? `/companies/${companyId}/product` : "/companies");
+  };
+
+  const handleImageFileChange = async (file: File | null) => {
+    if (!file) {
+      setForm((current) => ({
+        ...current,
+        image_url: "",
+      }));
+      setErrors((current) => ({
+        ...current,
+        form: undefined,
+      }));
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      setErrors((current) => ({
+        ...current,
+        form: "Please choose an image file.",
+      }));
+      return;
+    }
+
+    try {
+      setIsUploadingImage(true);
+      const imageUrl = await uploadImage(file);
+
+      setForm((current) => ({
+        ...current,
+        image_url: imageUrl,
+      }));
+      setErrors((current) => ({
+        ...current,
+        form: undefined,
+      }));
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to upload the selected image.";
+
+      setErrors((current) => ({
+        ...current,
+        form: message,
+      }));
+    } finally {
+      setIsUploadingImage(false);
+    }
   };
 
   const validateForm = () => {
@@ -242,14 +293,15 @@ export default function AddProduct() {
             required
           />
 
-          <TextInput
+          <FileInput
             label={t("companyDetails.productImageUrl")}
-            placeholder={t("companyDetails.productImageUrlPlaceholder")}
-            value={form.image_url}
-            onChange={(event) => {
-              const value = event.currentTarget.value;
-              setForm((current) => ({ ...current, image_url: value }));
-            }}
+            placeholder="Choose an image"
+            accept="image/*"
+            clearable
+            onChange={handleImageFileChange}
+            description={
+              isUploadingImage ? "Uploading image..." : "Select an image file to upload."
+            }
           />
 
           <NumberInput
@@ -275,9 +327,11 @@ export default function AddProduct() {
             label={t("companyDetails.productAvailable")}
             checked={form.is_available}
             onChange={(event) => {
+              const checked = event.currentTarget.checked;
+
               setForm((current) => ({
                 ...current,
-                is_available: event.currentTarget.checked,
+                is_available: checked,
               }));
             }}
           />
@@ -292,7 +346,11 @@ export default function AddProduct() {
             <Button variant="default" onClick={handleClose}>
               {t("staffPage.cancel")}
             </Button>
-            <Button type="submit" loading={createProductMutation.isPending}>
+            <Button
+              type="submit"
+              loading={createProductMutation.isPending || isUploadingImage}
+              disabled={isUploadingImage}
+            >
               {t("staffPage.createButton")}
             </Button>
           </Group>

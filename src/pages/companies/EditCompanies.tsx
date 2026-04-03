@@ -1,6 +1,8 @@
 import {
   Alert,
   Button,
+  ColorInput,
+  FileInput,
   Group,
   Loader,
   Modal,
@@ -10,9 +12,10 @@ import {
   TextInput,
 } from "@mantine/core";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState, type FormEvent } from "react";
+import { startTransition, useEffect, useState, type FormEvent } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useCompanyById, useUpdateCompany } from "../../service/companies";
+import { uploadImage } from "../../service/images";
 import type { Company, UpdateCompanyPayload } from "../../types/companies";
 import {
   showErrorNotification,
@@ -34,10 +37,21 @@ const EMPTY_FORM: UpdateCompanyPayload = {
   name: "",
   bot_token: "",
   bot_username: "",
-  brand_color: "",
+  brand_color: "#F08C00",
   logo_url: "",
   is_active: false,
 };
+
+const BRAND_COLOR_SWATCHES = [
+  "#F08C00",
+  "#E03131",
+  "#2F9E44",
+  "#1C7ED6",
+  "#6741D9",
+  "#0C8599",
+  "#5C940D",
+  "#C2255C",
+];
 
 export default function EditCompanies() {
   const location = useLocation();
@@ -55,26 +69,79 @@ export default function EditCompanies() {
   const company = locationCompany ?? fetchedCompany;
   const [form, setForm] = useState<UpdateCompanyPayload>(EMPTY_FORM);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
   useEffect(() => {
     if (!company) {
       return;
     }
 
-    setForm({
-      name: company.name,
-      bot_token: company.bot_token,
-      bot_username: company.bot_username,
-      brand_color: company.brand_color,
-      logo_url: company.logo_url,
-      is_active: company.is_active,
+    startTransition(() => {
+      setForm({
+        name: company.name,
+        bot_token: company.bot_token,
+        bot_username: company.bot_username,
+        brand_color: company.brand_color,
+        logo_url: company.logo_url,
+        is_active: company.is_active,
+      });
+      setErrors({});
     });
-    setErrors({});
   }, [company]);
 
   const handleClose = () => {
     setErrors({});
     navigate("/companies");
+  };
+
+  const handleLogoFileChange = async (file: File | null) => {
+    if (!file) {
+      setForm((current) => ({
+        ...current,
+        logo_url: "",
+      }));
+      setErrors((current) => ({
+        ...current,
+        logo_url: undefined,
+        form: undefined,
+      }));
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      setErrors((current) => ({
+        ...current,
+        logo_url: "Please choose an image file.",
+        form: undefined,
+      }));
+      return;
+    }
+
+    try {
+      setIsUploadingLogo(true);
+      const imageUrl = await uploadImage(file);
+
+      setForm((current) => ({
+        ...current,
+        logo_url: imageUrl,
+      }));
+      setErrors((current) => ({
+        ...current,
+        logo_url: undefined,
+        form: undefined,
+      }));
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to upload the selected image.";
+
+      setErrors((current) => ({
+        ...current,
+        logo_url: message,
+        form: undefined,
+      }));
+    } finally {
+      setIsUploadingLogo(false);
+    }
   };
 
   const validateForm = () => {
@@ -226,13 +293,11 @@ export default function EditCompanies() {
             required
           />
 
-          <TextInput
+          <ColorInput
             label="Brand color"
-            placeholder="#0088cc"
+            placeholder="#F08C00"
             value={form.brand_color ?? ""}
-            onChange={(event) => {
-              const value = event.currentTarget.value;
-
+            onChange={(value) => {
               setForm((current) => ({
                 ...current,
                 brand_color: value,
@@ -243,28 +308,23 @@ export default function EditCompanies() {
                 form: undefined,
               }));
             }}
+            swatches={BRAND_COLOR_SWATCHES}
+            withPicker
+            format="hex"
             error={errors.brand_color}
             required
           />
 
-          <TextInput
-            label="Logo URL"
-            value={form.logo_url ?? ""}
-            onChange={(event) => {
-              const value = event.currentTarget.value;
-
-              setForm((current) => ({
-                ...current,
-                logo_url: value,
-              }));
-              setErrors((current) => ({
-                ...current,
-                logo_url: undefined,
-                form: undefined,
-              }));
-            }}
+          <FileInput
+            label="Logo image"
+            placeholder="Choose an image"
+            accept="image/*"
+            clearable
+            onChange={handleLogoFileChange}
             error={errors.logo_url}
-            required
+            description={
+              isUploadingLogo ? "Uploading image..." : "Select an image file to upload."
+            }
           />
 
           <div>
@@ -275,7 +335,7 @@ export default function EditCompanies() {
               fullWidth
               radius="md"
               size="md"
-              value={Boolean(form.is_active) ? "active" : "inactive"}
+              value={form.is_active ? "active" : "inactive"}
               onChange={(value) => {
                 setForm((current) => ({
                   ...current,
@@ -303,7 +363,11 @@ export default function EditCompanies() {
             <Button variant="default" onClick={handleClose}>
               Cancel
             </Button>
-            <Button type="submit" loading={updateCompanyMutation.isPending}>
+            <Button
+              type="submit"
+              loading={updateCompanyMutation.isPending || isUploadingLogo}
+              disabled={isUploadingLogo}
+            >
               Save
             </Button>
           </Group>

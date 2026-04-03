@@ -1,6 +1,7 @@
 import {
   Alert,
   Button,
+  FileInput,
   Group,
   Loader,
   Modal,
@@ -13,10 +14,12 @@ import {
   Textarea,
 } from "@mantine/core";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState, type FormEvent } from "react";
+import { startTransition, useEffect, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useActiveCompanyId } from "../../app/providers/AuthProvider";
 import { useCategories } from "../../service/categories";
+import { uploadImage } from "../../service/images";
 import { useProductById, useUpdateProduct } from "../../service/products";
 import type { Product, UpdateProductPayload } from "../../types/products";
 import {
@@ -48,7 +51,8 @@ const EMPTY_FORM: UpdateProductPayload = {
 
 export default function EditProduct() {
   const { t } = useTranslation();
-  const { companyId, productId } = useParams();
+  const { companyId: routeCompanyId, productId } = useParams();
+  const companyId = useActiveCompanyId(routeCompanyId);
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
@@ -63,6 +67,7 @@ export default function EditProduct() {
   const product = locationProduct ?? fetchedProduct;
   const [form, setForm] = useState<UpdateProductPayload>(EMPTY_FORM);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const categoryOptions = (categoriesData?.categories ?? []).map((category) => ({
     value: category.id,
@@ -74,23 +79,71 @@ export default function EditProduct() {
       return;
     }
 
-    setForm({
-      company_id: product.company_id,
-      category_id: product.category_id,
-      name_uz: product.name_uz,
-      name_ru: product.name_ru,
-      description: product.description,
-      price: product.price,
-      image_url: product.image_url,
-      stock_quantity: product.stock_quantity,
-      is_available: product.is_available,
+    startTransition(() => {
+      setForm({
+        company_id: product.company_id,
+        category_id: product.category_id,
+        name_uz: product.name_uz,
+        name_ru: product.name_ru,
+        description: product.description,
+        price: product.price,
+        image_url: product.image_url,
+        stock_quantity: product.stock_quantity,
+        is_available: product.is_available,
+      });
+      setErrors({});
     });
-    setErrors({});
   }, [product]);
 
   const handleClose = () => {
     setErrors({});
-    navigate(`/companies/${companyId}/product`);
+    navigate(companyId ? `/companies/${companyId}/product` : "/companies");
+  };
+
+  const handleImageFileChange = async (file: File | null) => {
+    if (!file) {
+      setForm((current) => ({
+        ...current,
+        image_url: "",
+      }));
+      setErrors((current) => ({
+        ...current,
+        form: undefined,
+      }));
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      setErrors((current) => ({
+        ...current,
+        form: "Please choose an image file.",
+      }));
+      return;
+    }
+
+    try {
+      setIsUploadingImage(true);
+      const imageUrl = await uploadImage(file);
+
+      setForm((current) => ({
+        ...current,
+        image_url: imageUrl,
+      }));
+      setErrors((current) => ({
+        ...current,
+        form: undefined,
+      }));
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to upload the selected image.";
+
+      setErrors((current) => ({
+        ...current,
+        form: message,
+      }));
+    } finally {
+      setIsUploadingImage(false);
+    }
   };
 
   const validateForm = () => {
@@ -288,14 +341,15 @@ export default function EditProduct() {
               required
             />
 
-            <TextInput
+            <FileInput
               label={t("companyDetails.productImageUrl")}
-              placeholder={t("companyDetails.productImageUrlPlaceholder")}
-              value={form.image_url}
-              onChange={(event) => {
-                const value = event.currentTarget.value;
-                setForm((current) => ({ ...current, image_url: value }));
-              }}
+              placeholder="Choose an image"
+              accept="image/*"
+              clearable
+              onChange={handleImageFileChange}
+              description={
+                isUploadingImage ? "Uploading image..." : "Select an image file to upload."
+              }
             />
 
             <NumberInput
@@ -321,9 +375,11 @@ export default function EditProduct() {
               label={t("companyDetails.productAvailable")}
               checked={form.is_available}
               onChange={(event) => {
+                const checked = event.currentTarget.checked;
+
                 setForm((current) => ({
                   ...current,
-                  is_available: event.currentTarget.checked,
+                  is_available: checked,
                 }));
               }}
             />
@@ -338,7 +394,11 @@ export default function EditProduct() {
               <Button variant="default" onClick={handleClose}>
                 {t("staffPage.cancel")}
               </Button>
-              <Button type="submit" loading={updateProductMutation.isPending}>
+              <Button
+                type="submit"
+                loading={updateProductMutation.isPending || isUploadingImage}
+                disabled={isUploadingImage}
+              >
                 {t("staffPage.saveButton")}
               </Button>
             </Group>

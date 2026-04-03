@@ -9,6 +9,7 @@ export function useAuth() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const phone = useAuthStore((state) => state.phone);
   const user = useAuthStore((state) => state.user);
+  const company = useAuthStore((state) => state.company);
   const isLoading = useAuthStore((state) => state.isLoading);
   const login = useAuthStore((state) => state.login);
   const logout = useAuthStore((state) => state.logout);
@@ -17,8 +18,15 @@ export function useAuth() {
     isAuthenticated,
     phone,
     user,
+    company,
     isLoading,
     login,
     logout,
   };
+}
+
+export function useActiveCompanyId(routeCompanyId?: string) {
+  const companyId = useAuthStore((state) => state.company?.id);
+
+  return routeCompanyId ?? companyId;
 }

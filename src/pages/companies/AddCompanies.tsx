@@ -1,6 +1,8 @@
 import {
   Alert,
   Button,
+  ColorInput,
+  FileInput,
   Group,
   Modal,
   Stack,
@@ -10,6 +12,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCreateCompany } from "../../service/companies";
+import { uploadImage } from "../../service/images";
 import type { CreateCompanyPayload } from "../../types/companies";
 import {
   showErrorNotification,
@@ -31,9 +34,20 @@ const EMPTY_FORM: CreateCompanyPayload = {
   name: "",
   bot_token: "",
   bot_username: "",
-  brand_color: "",
+  brand_color: "#F08C00",
   logo_url: "",
 };
+
+const BRAND_COLOR_SWATCHES = [
+  "#F08C00",
+  "#E03131",
+  "#2F9E44",
+  "#1C7ED6",
+  "#6741D9",
+  "#0C8599",
+  "#5C940D",
+  "#C2255C",
+];
 
 export default function AddCompanies() {
   const navigate = useNavigate();
@@ -41,6 +55,7 @@ export default function AddCompanies() {
   const createCompanyMutation = useCreateCompany();
   const [form, setForm] = useState<CreateCompanyPayload>(EMPTY_FORM);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
   const resetForm = () => {
     setForm(EMPTY_FORM);
@@ -50,6 +65,56 @@ export default function AddCompanies() {
   const handleClose = () => {
     resetForm();
     navigate("/companies");
+  };
+
+  const handleLogoFileChange = async (file: File | null) => {
+    if (!file) {
+      setForm((current) => ({
+        ...current,
+        logo_url: "",
+      }));
+      setErrors((current) => ({
+        ...current,
+        logo_url: undefined,
+        form: undefined,
+      }));
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      setErrors((current) => ({
+        ...current,
+        logo_url: "Please choose an image file.",
+        form: undefined,
+      }));
+      return;
+    }
+
+    try {
+      setIsUploadingLogo(true);
+      const imageUrl = await uploadImage(file);
+
+      setForm((current) => ({
+        ...current,
+        logo_url: imageUrl,
+      }));
+      setErrors((current) => ({
+        ...current,
+        logo_url: undefined,
+        form: undefined,
+      }));
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to upload the selected image.";
+
+      setErrors((current) => ({
+        ...current,
+        logo_url: message,
+        form: undefined,
+      }));
+    } finally {
+      setIsUploadingLogo(false);
+    }
   };
 
   const validateForm = () => {
@@ -179,13 +244,11 @@ export default function AddCompanies() {
             required
           />
 
-          <TextInput
+          <ColorInput
             label="Brand color"
-            placeholder="#0088cc"
+            placeholder="#F08C00"
             value={form.brand_color}
-            onChange={(event) => {
-              const value = event.currentTarget.value;
-
+            onChange={(value) => {
               setForm((current) => ({
                 ...current,
                 brand_color: value,
@@ -196,28 +259,23 @@ export default function AddCompanies() {
                 form: undefined,
               }));
             }}
+            swatches={BRAND_COLOR_SWATCHES}
+            withPicker
+            format="hex"
             error={errors.brand_color}
             required
           />
 
-          <TextInput
-            label="Logo URL"
-            value={form.logo_url}
-            onChange={(event) => {
-              const value = event.currentTarget.value;
-
-              setForm((current) => ({
-                ...current,
-                logo_url: value,
-              }));
-              setErrors((current) => ({
-                ...current,
-                logo_url: undefined,
-                form: undefined,
-              }));
-            }}
+          <FileInput
+            label="Logo image"
+            placeholder="Choose an image"
+            accept="image/*"
+            clearable
+            onChange={handleLogoFileChange}
             error={errors.logo_url}
-            required
+            description={
+              isUploadingLogo ? "Uploading image..." : "Select an image file to upload."
+            }
           />
 
           {errors.form ? (
@@ -230,7 +288,11 @@ export default function AddCompanies() {
             <Button variant="default" onClick={handleClose}>
               Cancel
             </Button>
-            <Button type="submit" loading={createCompanyMutation.isPending}>
+            <Button
+              type="submit"
+              loading={createCompanyMutation.isPending || isUploadingLogo}
+              disabled={isUploadingLogo}
+            >
               Create
             </Button>
           </Group>

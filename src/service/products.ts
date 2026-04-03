@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { api } from "./api";
+import { useAuthStore } from "../store/auth";
 import type {
   CreateProductPayload,
   Product,
@@ -22,6 +23,10 @@ function extractProduct(payload: Product | ProductResponse) {
   return payload.data ?? payload.product;
 }
 
+function getActiveCompanyId(companyId?: string) {
+  return companyId ?? useAuthStore.getState().company?.id;
+}
+
 export function useProducts(
   companyId?: string,
   limit = 10,
@@ -29,12 +34,14 @@ export function useProducts(
   query = "",
   categoryId?: string | null
 ) {
+  const resolvedCompanyId = getActiveCompanyId(companyId);
+
   return useQuery({
-    queryKey: ["products", companyId, limit, page, query, categoryId ?? ""],
+    queryKey: ["products", resolvedCompanyId, limit, page, query, categoryId ?? ""],
     queryFn: async () => {
       try {
         const { data } = await api.get<ProductListResponse>(
-          `/api/v1/company/${companyId}/products`,
+          `/api/v1/company/${resolvedCompanyId}/products`,
           {
             params: {
               limit,
@@ -53,20 +60,21 @@ export function useProducts(
         throw new Error(getErrorMessage(error, "Failed to load products."));
       }
     },
-    enabled: Boolean(companyId),
+    enabled: Boolean(resolvedCompanyId),
     refetchOnWindowFocus: false,
   });
 }
 
 export function useProductById(companyId?: string, id?: string) {
   const queryClient = useQueryClient();
+  const resolvedCompanyId = getActiveCompanyId(companyId);
 
   return useQuery({
-    queryKey: ["product", companyId, id],
+    queryKey: ["product", resolvedCompanyId, id],
     queryFn: async () => {
       try {
         const { data } = await api.get<Product | ProductResponse>(
-          `/api/v1/company/${companyId}/product/${id}`
+          `/api/v1/company/${resolvedCompanyId}/product/${id}`
         );
         const product = extractProduct(data);
 
@@ -79,7 +87,7 @@ export function useProductById(companyId?: string, id?: string) {
         throw new Error(getErrorMessage(error, "Failed to load the product."));
       }
     },
-    enabled: Boolean(companyId && id),
+    enabled: Boolean(resolvedCompanyId && id),
     refetchOnWindowFocus: false,
     initialData: () => {
       if (!id) {
@@ -109,10 +117,19 @@ export function useProductById(companyId?: string, id?: string) {
 export const useCreateProduct = () =>
   useMutation<Product, Error, CreateProductPayload>({
     mutationFn: async (payload) => {
+      const companyId = getActiveCompanyId(payload.company_id);
+
+      if (!companyId) {
+        throw new Error("Company id is required.");
+      }
+
       try {
         const { data } = await api.post<Product | ProductResponse>(
-          `/api/v1/company/${payload.company_id}/product`,
-          payload
+          `/api/v1/company/${companyId}/product`,
+          {
+            ...payload,
+            company_id: companyId,
+          }
         );
         const product = extractProduct(data);
 
@@ -130,10 +147,19 @@ export const useCreateProduct = () =>
 export const useUpdateProduct = () =>
   useMutation<Product, Error, { id: string; payload: UpdateProductPayload }>({
     mutationFn: async ({ id, payload }) => {
+      const companyId = getActiveCompanyId(payload.company_id);
+
+      if (!companyId) {
+        throw new Error("Company id is required.");
+      }
+
       try {
         const { data } = await api.put<Product | ProductResponse>(
           `/api/v1/company/product/${id}`,
-          payload
+          {
+            ...payload,
+            company_id: companyId,
+          }
         );
         const product = extractProduct(data);
 

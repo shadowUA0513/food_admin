@@ -11,6 +11,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
+import { useActiveCompanyId } from "../../app/providers/AuthProvider";
 import { useCreateCategory } from "../../service/categories";
 import type { CreateCategoryPayload } from "../../types/categories";
 import {
@@ -33,7 +34,8 @@ const EMPTY_FORM = {
 
 export default function AddCategory() {
   const { t } = useTranslation();
-  const { companyId } = useParams();
+  const { companyId: routeCompanyId } = useParams();
+  const companyId = useActiveCompanyId(routeCompanyId);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const createCategoryMutation = useCreateCategory();
@@ -47,7 +49,7 @@ export default function AddCategory() {
 
   const handleClose = () => {
     resetForm();
-    navigate(`/companies/${companyId}/category`);
+    navigate(companyId ? `/companies/${companyId}/category` : "/companies");
   };
 
   const validateForm = () => {

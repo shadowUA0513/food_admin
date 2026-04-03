@@ -13,6 +13,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useActiveCompanyId } from "../../app/providers/AuthProvider";
 import {
   useCategoryById,
   useUpdateCategory,
@@ -39,7 +40,8 @@ const EMPTY_FORM: UpdateCategoryPayload = {
 
 export default function EditCategory() {
   const { t } = useTranslation();
-  const { companyId, categoryId } = useParams();
+  const { companyId: routeCompanyId, categoryId } = useParams();
+  const companyId = useActiveCompanyId(routeCompanyId);
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
@@ -71,7 +73,7 @@ export default function EditCategory() {
 
   const handleClose = () => {
     setErrors({});
-    navigate(`/companies/${companyId}/category`);
+    navigate(companyId ? `/companies/${companyId}/category` : "/companies");
   };
 
   const validateForm = () => {

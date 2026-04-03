@@ -28,6 +28,7 @@ import {
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
+import { useActiveCompanyId } from "../../app/providers/AuthProvider";
 import { useCategories } from "../../service/categories";
 import { useDeleteProduct, useProducts } from "../../service/products";
 import type { Product } from "../../types/products";
@@ -40,7 +41,8 @@ const ITEMS_PER_PAGE = 10;
 
 export default function CompanyProductPage() {
   const { t } = useTranslation();
-  const { companyId } = useParams();
+  const { companyId: routeCompanyId } = useParams();
+  const companyId = useActiveCompanyId(routeCompanyId);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -170,8 +172,11 @@ export default function CompanyProductPage() {
         </div>
         <Button
           leftSection={<IconPlus size={16} />}
+          disabled={!companyId}
           onClick={() => {
-            navigate(`/companies/${companyId}/product/add-product`);
+            if (companyId) {
+              navigate(`/companies/${companyId}/product/add-product`);
+            }
           }}
         >
           {t("companyDetails.addProduct")}

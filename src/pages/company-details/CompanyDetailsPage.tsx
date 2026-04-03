@@ -23,12 +23,13 @@ import {
 } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
-import { useAuth } from "../../app/providers/AuthProvider";
+import { useActiveCompanyId, useAuth } from "../../app/providers/AuthProvider";
 import { useCompanyById } from "../../service/companies";
 import type { Company } from "../../types/companies";
 
 export default function CompanyDetailsPage() {
-  const { companyId } = useParams();
+  const { companyId: routeCompanyId } = useParams();
+  const companyId = useActiveCompanyId(routeCompanyId);
   const { t, i18n } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();

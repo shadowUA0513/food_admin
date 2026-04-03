@@ -23,6 +23,7 @@ export async function loginRequest(payload: LoginPayload) {
       token: data.access_token,
       phone: data.user.phone_number,
       user: data.user,
+      company: data.company ?? null,
     } satisfies AuthSession;
   } catch (error) {
     const axiosError = error as AxiosError<{ message?: string }>;
