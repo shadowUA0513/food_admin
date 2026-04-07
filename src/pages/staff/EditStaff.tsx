@@ -14,7 +14,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "../../app/providers/AuthProvider";
 import { PhoneNumberInput } from "../../components/common/PhoneNumberInput";
+import { useCompanies } from "../../service/companies";
 import { useStaffUserById, useUpdateStaffUser } from "../../service/staff";
 import type { StaffRole, StaffUser, UpdateStaffPayload } from "../../types/staff";
 import {
@@ -31,6 +33,7 @@ interface FormErrors {
   phone_number?: string;
   password?: string;
   role?: string;
+  company_id?: string;
   form?: string;
 }
 
@@ -40,9 +43,15 @@ export default function EditStaff() {
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
+  const { company: activeCompany, user } = useAuth();
   const { staffId } = useParams();
   const queryClient = useQueryClient();
   const updateStaffMutation = useUpdateStaffUser();
+  const { data: companies = [], isLoading: isCompaniesLoading } = useCompanies(
+    1000,
+    1,
+    "",
+  );
   const locationStaff = (location.state as { staff?: StaffUser } | null)?.staff;
   const {
     data: fetchedStaff,
@@ -56,7 +65,14 @@ export default function EditStaff() {
     phone_number: UZBEKISTAN_PHONE_PREFIX,
     password: "",
     role: "admin",
+    company_id: activeCompany?.id ?? "",
   });
+  const companyOptions = companies.map((company) => ({
+    value: company.id,
+    label: company.name,
+  }));
+  const shouldLockCompanySelection =
+    !!activeCompany?.id && user?.role !== "super_admin";
 
   useEffect(() => {
     if (!staff) {
@@ -68,9 +84,10 @@ export default function EditStaff() {
       phone_number: staff.phone_number || UZBEKISTAN_PHONE_PREFIX,
       password: "",
       role: staff.role,
+      company_id: staff.company_id ?? staff.company?.id ?? activeCompany?.id ?? "",
     });
     setErrors({});
-  }, [staff]);
+  }, [activeCompany?.id, staff]);
 
   const handleClose = () => {
     setErrors({});
@@ -101,6 +118,10 @@ export default function EditStaff() {
       nextErrors.role = t("staffPage.roleRequired");
     }
 
+    if (!form.company_id) {
+      nextErrors.company_id = t("staffPage.companyRequired");
+    }
+
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
@@ -117,6 +138,7 @@ export default function EditStaff() {
       full_name: form.full_name,
       phone_number: form.phone_number,
       role: form.role,
+      company_id: form.company_id,
       ...(password ? { password } : {}),
     };
 
@@ -226,6 +248,31 @@ export default function EditStaff() {
               }));
             }}
             error={errors.password}
+          />
+
+          <Select
+            label={t("staffPage.companyLabel")}
+            placeholder={t("staffPage.companyPlaceholder")}
+            value={form.company_id}
+            onChange={(value) => {
+              setForm((current) => ({
+                ...current,
+                company_id: value ?? "",
+              }));
+              setErrors((current) => ({
+                ...current,
+                company_id: undefined,
+                form: undefined,
+              }));
+            }}
+            data={companyOptions}
+            error={errors.company_id}
+            disabled={shouldLockCompanySelection}
+            searchable
+            nothingFoundMessage={
+              isCompaniesLoading ? t("staffPage.loading") : t("staffPage.noCompanies")
+            }
+            required
           />
 
           <Select

@@ -49,6 +49,8 @@
     "fullNameLabel": "To'liq ism",
     "phoneLabel": "Telefon raqami",
     "passwordLabel": "Parol",
+    "companyLabel": "Kompaniya",
+    "companyPlaceholder": "Kompaniyani tanlang",
     "roleLabel": "Rol",
     "adminRole": "Admin",
     "superAdminRole": "Super admin",
@@ -70,7 +72,9 @@
     "phoneInvalid": "To'g'ri telefon raqamini kiriting",
     "passwordRequired": "Parol kiritilishi shart",
     "passwordTooShort": "Parol 5 ta belgidan uzun bo'lishi kerak",
-    "roleRequired": "Rol tanlanishi shart"
+    "roleRequired": "Rol tanlanishi shart",
+    "companyRequired": "Kompaniya tanlanishi shart",
+    "noCompanies": "Kompaniyalar topilmadi"
   },
   "companiesPage": {
     "title": "Kompaniyalar",

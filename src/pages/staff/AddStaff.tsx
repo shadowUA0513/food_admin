@@ -9,10 +9,12 @@ import {
   TextInput,
 } from "@mantine/core";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { PhoneNumberInput } from "../../components/common/PhoneNumberInput";
+import { useAuth } from "../../app/providers/AuthProvider";
+import { useCompanies } from "../../service/companies";
 import { useCreateStaffUser } from "../../service/staff";
 import type { CreateStaffPayload, StaffRole } from "../../types/staff";
 import {
@@ -29,6 +31,7 @@ interface FormErrors {
   phone_number?: string;
   password?: string;
   role?: string;
+  company_id?: string;
   form?: string;
 }
 
@@ -37,15 +40,57 @@ const MIN_PASSWORD_LENGTH = 6;
 export default function AddStaff() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { company: activeCompany, user } = useAuth();
   const queryClient = useQueryClient();
   const createStaffMutation = useCreateStaffUser();
+  const { data: companies = [], isLoading: isCompaniesLoading } = useCompanies(
+    1000,
+    1,
+    "",
+  );
   const [errors, setErrors] = useState<FormErrors>({});
   const [form, setForm] = useState<CreateStaffPayload>({
     full_name: "",
     phone_number: UZBEKISTAN_PHONE_PREFIX,
     password: "",
     role: "admin",
+    company_id: activeCompany?.id ?? "",
   });
+  const companyOptions = companies.map((company) => ({
+    value: company.id,
+    label: company.name,
+  }));
+  const shouldLockCompanySelection =
+    !!activeCompany?.id && user?.role !== "super_admin";
+
+  useEffect(() => {
+    if (activeCompany?.id) {
+      setForm((current) => {
+        if (current.company_id === activeCompany.id) {
+          return current;
+        }
+
+        return {
+          ...current,
+          company_id: activeCompany.id,
+        };
+      });
+      return;
+    }
+
+    if (companies.length === 1) {
+      setForm((current) => {
+        if (current.company_id) {
+          return current;
+        }
+
+        return {
+          ...current,
+          company_id: companies[0].id,
+        };
+      });
+    }
+  }, [activeCompany?.id, companies]);
 
   const resetForm = () => {
     setForm({
@@ -53,6 +98,7 @@ export default function AddStaff() {
       phone_number: UZBEKISTAN_PHONE_PREFIX,
       password: "",
       role: "admin",
+      company_id: activeCompany?.id ?? "",
     });
     setErrors({});
   };
@@ -86,6 +132,10 @@ export default function AddStaff() {
 
     if (!form.role) {
       nextErrors.role = t("staffPage.roleRequired");
+    }
+
+    if (!form.company_id) {
+      nextErrors.company_id = t("staffPage.companyRequired");
     }
 
     setErrors(nextErrors);
@@ -187,6 +237,31 @@ export default function AddStaff() {
               }));
             }}
             error={errors.password}
+            required
+          />
+
+          <Select
+            label={t("staffPage.companyLabel")}
+            placeholder={t("staffPage.companyPlaceholder")}
+            value={form.company_id}
+            onChange={(value) => {
+              setForm((current) => ({
+                ...current,
+                company_id: value ?? "",
+              }));
+              setErrors((current) => ({
+                ...current,
+                company_id: undefined,
+                form: undefined,
+              }));
+            }}
+            data={companyOptions}
+            error={errors.company_id}
+            disabled={shouldLockCompanySelection}
+            searchable
+            nothingFoundMessage={
+              isCompaniesLoading ? t("staffPage.loading") : t("staffPage.noCompanies")
+            }
             required
           />
 

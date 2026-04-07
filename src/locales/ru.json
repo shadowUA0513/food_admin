@@ -49,6 +49,8 @@
     "fullNameLabel": "Полное имя",
     "phoneLabel": "Номер телефона",
     "passwordLabel": "Пароль",
+    "companyLabel": "Компания",
+    "companyPlaceholder": "Выберите компанию",
     "roleLabel": "Роль",
     "adminRole": "Админ",
     "superAdminRole": "Супер админ",
@@ -70,7 +72,9 @@
     "phoneInvalid": "Введите корректный номер телефона",
     "passwordRequired": "Пароль обязателен",
     "passwordTooShort": "Пароль должен быть длиннее 5 символов",
-    "roleRequired": "Роль обязательна"
+    "roleRequired": "Роль обязательна",
+    "companyRequired": "Компания обязательна",
+    "noCompanies": "Компании не найдены"
   },
   "companiesPage": {
     "title": "Компании",

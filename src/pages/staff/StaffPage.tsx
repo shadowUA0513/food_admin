@@ -213,6 +213,7 @@ export default function StaffPage() {
             <Table.Thead>
               <Table.Tr>
                 <Table.Th>{t("staffPage.employee")}</Table.Th>
+                <Table.Th>{t("staffPage.companyLabel")}</Table.Th>
                 <Table.Th>{t("staffPage.phoneColumn")}</Table.Th>
                 <Table.Th>{t("staffPage.role")}</Table.Th>
                 <Table.Th>{t("staffPage.createdAt")}</Table.Th>
@@ -225,6 +226,7 @@ export default function StaffPage() {
                   <Table.Td>
                     <Text fw={600}>{member.full_name}</Text>
                   </Table.Td>
+                  <Table.Td>{member.company?.name || "-"}</Table.Td>
                   <Table.Td>{member.phone_number}</Table.Td>
                   <Table.Td>
                     {member.role === "super_admin"

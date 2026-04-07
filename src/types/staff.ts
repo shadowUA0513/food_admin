@@ -1,10 +1,17 @@
 export type StaffRole = "admin" | "super_admin";
 
+export interface StaffCompany {
+  id: string;
+  name: string;
+}
+
 export interface StaffUser {
   id: string;
   full_name: string;
   phone_number: string;
   role: StaffRole;
+  company_id?: string | null;
+  company?: StaffCompany | null;
   tg_id: number;
   tg_user_name: string;
   created_at: string;
@@ -16,6 +23,7 @@ export interface CreateStaffPayload {
   phone_number: string;
   password: string;
   role: StaffRole;
+  company_id: string;
 }
 
 export interface UpdateStaffPayload {
@@ -23,6 +31,7 @@ export interface UpdateStaffPayload {
   phone_number: string;
   password?: string;
   role: StaffRole;
+  company_id: string;
 }
 
 export interface StaffListResponse {
