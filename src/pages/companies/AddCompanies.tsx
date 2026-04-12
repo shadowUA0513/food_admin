@@ -5,6 +5,8 @@ import {
   FileInput,
   Group,
   Modal,
+  MultiSelect,
+  NumberInput,
   Stack,
   TextInput,
 } from "@mantine/core";
@@ -25,6 +27,8 @@ interface FormErrors {
   bot_username?: string;
   brand_color?: string;
   logo_url?: string;
+  supported_order_types?: string;
+  min_order_amount?: string;
   form?: string;
 }
 
@@ -36,6 +40,8 @@ const EMPTY_FORM: CreateCompanyPayload = {
   bot_username: "",
   brand_color: "#F08C00",
   logo_url: "",
+  supported_order_types: [],
+  min_order_amount: 50000,
 };
 
 const BRAND_COLOR_SWATCHES = [
@@ -47,6 +53,11 @@ const BRAND_COLOR_SWATCHES = [
   "#0C8599",
   "#5C940D",
   "#C2255C",
+];
+
+const ORDER_TYPE_OPTIONS = [
+  { value: "delivery-anywhere", label: "Delivery anywhere" },
+  { value: "delivery-to-organization", label: "Delivery to organization" },
 ];
 
 export default function AddCompanies() {
@@ -142,6 +153,14 @@ export default function AddCompanies() {
       nextErrors.logo_url = "Logo URL is required.";
     }
 
+    if (form.supported_order_types.length === 0) {
+      nextErrors.supported_order_types = "Select at least one order type.";
+    }
+
+    if (!Number.isFinite(form.min_order_amount) || form.min_order_amount < 0) {
+      nextErrors.min_order_amount = "Minimum order amount must be 0 or more.";
+    }
+
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
@@ -160,6 +179,8 @@ export default function AddCompanies() {
         bot_username: form.bot_username.trim(),
         brand_color: form.brand_color.trim(),
         logo_url: form.logo_url.trim(),
+        supported_order_types: form.supported_order_types,
+        min_order_amount: Number(form.min_order_amount),
       });
       await queryClient.invalidateQueries({ queryKey: ["companies"] });
       showSuccessNotification({
@@ -276,6 +297,46 @@ export default function AddCompanies() {
             description={
               isUploadingLogo ? "Uploading image..." : "Select an image file to upload."
             }
+          />
+
+          <MultiSelect
+            label="Supported order types"
+            placeholder="Select order types"
+            data={ORDER_TYPE_OPTIONS}
+            value={form.supported_order_types}
+            onChange={(value) => {
+              setForm((current) => ({
+                ...current,
+                supported_order_types: value,
+              }));
+              setErrors((current) => ({
+                ...current,
+                supported_order_types: undefined,
+                form: undefined,
+              }));
+            }}
+            error={errors.supported_order_types}
+            required
+          />
+
+          <NumberInput
+            label="Minimum order amount"
+            value={form.min_order_amount}
+            onChange={(value) => {
+              setForm((current) => ({
+                ...current,
+                min_order_amount: typeof value === "number" ? value : 0,
+              }));
+              setErrors((current) => ({
+                ...current,
+                min_order_amount: undefined,
+                form: undefined,
+              }));
+            }}
+            min={0}
+            thousandSeparator=","
+            error={errors.min_order_amount}
+            required
           />
 
           {errors.form ? (

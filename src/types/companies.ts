@@ -6,6 +6,8 @@ export interface Company {
   brand_color: string;
   logo_url: string;
   is_active: boolean;
+  supported_order_types: string[];
+  min_order_amount: number;
   created_at: string;
   updated_at: string;
 }
@@ -17,6 +19,8 @@ export interface CreateCompanyPayload {
   brand_color: string;
   logo_url: string;
   is_active?: boolean;
+  supported_order_types: string[];
+  min_order_amount: number;
 }
 
 export type UpdateCompanyPayload = Partial<CreateCompanyPayload>;
