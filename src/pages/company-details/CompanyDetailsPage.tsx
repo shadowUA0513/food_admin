@@ -1,6 +1,7 @@
 import {
   ActionIcon,
   Alert,
+  Badge,
   Box,
   Button,
   Group,
@@ -40,7 +41,7 @@ export default function CompanyDetailsPage() {
   const locationCompany = (location.state as { company?: Company } | null)
     ?.company;
   const { data: fetchedCompany, isLoading, error } = useCompanyById(companyId);
-  const company = locationCompany ?? fetchedCompany;
+  const company = fetchedCompany ?? locationCompany;
 
   const handleLogout = () => {
     logout();
@@ -137,10 +138,15 @@ export default function CompanyDetailsPage() {
             onClick={() => {
               navigate("/companies");
             }}
-          >
-            {t("companyDetails.back")}
-          </Button>
-          <Title order={1}>{company?.name ?? "Company"}</Title>
+            >
+              {t("companyDetails.back")}
+            </Button>
+          <Stack gap={4} align="flex-end">
+            <Title order={1}>{company?.name ?? "Company"}</Title>
+            <Badge color="orange" variant="light">
+              Payment accepting style: {company?.payment_accepting_style ?? "non-o"}
+            </Badge>
+          </Stack>
         </Group>
 
         <Group align="stretch" gap="lg" wrap="nowrap">
