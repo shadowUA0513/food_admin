@@ -48,6 +48,14 @@ function maskToken(token: string) {
   return `${token.slice(0, 4)}...${token.slice(-4)}`;
 }
 
+function formatList(values: string[]) {
+  if (!values.length) {
+    return "Not provided";
+  }
+
+  return values.join(", ");
+}
+
 export default function CompaniesPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -196,9 +204,30 @@ export default function CompaniesPage() {
 
               <div>
                 <Text size="xs" c="dimmed" tt="uppercase" fw={700}>
+                  Payment accepting style
+                </Text>
+                <Text mt={4}>{company.payment_accepting_style ?? "non-o"}</Text>
+              </div>
+
+              <div>
+                <Text size="xs" c="dimmed" tt="uppercase" fw={700}>
                   Bot token
                 </Text>
                 <Text mt={4}>{maskToken(company.bot_token)}</Text>
+              </div>
+
+              <div>
+                <Text size="xs" c="dimmed" tt="uppercase" fw={700}>
+                  Phone numbers
+                </Text>
+                <Text mt={4}>{formatList(company.phone_numbers ?? [])}</Text>
+              </div>
+
+              <div>
+                <Text size="xs" c="dimmed" tt="uppercase" fw={700}>
+                  Card numbers
+                </Text>
+                <Text mt={4}>{formatList(company.card_pans ?? [])}</Text>
               </div>
 
               <div>
