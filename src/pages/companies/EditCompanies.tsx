@@ -42,6 +42,8 @@ interface FormErrors {
   card_pans?: string;
   supported_order_types?: string;
   min_order_amount?: string;
+  delivery_fee?: string;
+  free_delivery_threshold?: string;
   payment_accepting_style?: string;
   form?: string;
 }
@@ -60,6 +62,8 @@ const EMPTY_FORM: UpdateCompanyPayload = {
   is_active: false,
   supported_order_types: [],
   min_order_amount: 50000,
+  delivery_fee: 20000,
+  free_delivery_threshold: 200000,
   payment_accepting_style: "non-o",
 };
 
@@ -115,6 +119,8 @@ export default function EditCompanies() {
         is_active: company.is_active,
         supported_order_types: company.supported_order_types ?? [],
         min_order_amount: company.min_order_amount ?? 50000,
+        delivery_fee: company.delivery_fee ?? 20000,
+        free_delivery_threshold: company.free_delivery_threshold ?? 200000,
         payment_accepting_style: company.payment_accepting_style ?? "non-o",
       });
       setErrors({});
@@ -219,6 +225,18 @@ export default function EditCompanies() {
       nextErrors.min_order_amount = "Minimum order amount must be 0 or more.";
     }
 
+    if (!Number.isFinite(form.delivery_fee) || Number(form.delivery_fee) < 0) {
+      nextErrors.delivery_fee = "Delivery fee must be 0 or more.";
+    }
+
+    if (
+      !Number.isFinite(form.free_delivery_threshold) ||
+      Number(form.free_delivery_threshold) < 0
+    ) {
+      nextErrors.free_delivery_threshold =
+        "Free delivery threshold must be 0 or more.";
+    }
+
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
@@ -249,6 +267,8 @@ export default function EditCompanies() {
           is_active: Boolean(form.is_active),
           supported_order_types: form.supported_order_types ?? [],
           min_order_amount: Number(form.min_order_amount),
+          delivery_fee: Number(form.delivery_fee),
+          free_delivery_threshold: Number(form.free_delivery_threshold),
           payment_accepting_style: form.payment_accepting_style ?? "non-o",
         },
       });
@@ -504,6 +524,46 @@ export default function EditCompanies() {
             min={0}
             thousandSeparator=","
             error={errors.min_order_amount}
+            required
+          />
+
+          <NumberInput
+            label="Delivery fee"
+            value={form.delivery_fee ?? 0}
+            onChange={(value) => {
+              setForm((current) => ({
+                ...current,
+                delivery_fee: typeof value === "number" ? value : 0,
+              }));
+              setErrors((current) => ({
+                ...current,
+                delivery_fee: undefined,
+                form: undefined,
+              }));
+            }}
+            min={0}
+            thousandSeparator=","
+            error={errors.delivery_fee}
+            required
+          />
+
+          <NumberInput
+            label="Free delivery threshold"
+            value={form.free_delivery_threshold ?? 0}
+            onChange={(value) => {
+              setForm((current) => ({
+                ...current,
+                free_delivery_threshold: typeof value === "number" ? value : 0,
+              }));
+              setErrors((current) => ({
+                ...current,
+                free_delivery_threshold: undefined,
+                form: undefined,
+              }));
+            }}
+            min={0}
+            thousandSeparator=","
+            error={errors.free_delivery_threshold}
             required
           />
 

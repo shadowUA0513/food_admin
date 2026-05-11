@@ -21,6 +21,8 @@ export interface Company {
   is_active: boolean;
   supported_order_types: string[];
   min_order_amount: number;
+  delivery_fee: number;
+  free_delivery_threshold: number;
   payment_accepting_style?: PaymentAcceptingStyle;
   created_at: string;
   updated_at: string;
@@ -38,6 +40,8 @@ export interface CreateCompanyPayload {
   is_active?: boolean;
   supported_order_types: string[];
   min_order_amount: number;
+  delivery_fee: number;
+  free_delivery_threshold: number;
   payment_accepting_style: PaymentAcceptingStyle;
 }
 
