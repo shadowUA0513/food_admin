@@ -56,6 +56,10 @@ function formatList(values: string[]) {
   return values.join(", ");
 }
 
+function formatAmount(value: number) {
+  return new Intl.NumberFormat("en-US").format(value);
+}
+
 export default function CompaniesPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -207,6 +211,29 @@ export default function CompaniesPage() {
                   Payment accepting style
                 </Text>
                 <Text mt={4}>{company.payment_accepting_style ?? "non-o"}</Text>
+              </div>
+
+              <div>
+                <Text size="xs" c="dimmed" tt="uppercase" fw={700}>
+                  Minimum order amount
+                </Text>
+                <Text mt={4}>{formatAmount(company.min_order_amount ?? 0)}</Text>
+              </div>
+
+              <div>
+                <Text size="xs" c="dimmed" tt="uppercase" fw={700}>
+                  Delivery fee
+                </Text>
+                <Text mt={4}>{formatAmount(company.delivery_fee ?? 0)}</Text>
+              </div>
+
+              <div>
+                <Text size="xs" c="dimmed" tt="uppercase" fw={700}>
+                  Free delivery threshold
+                </Text>
+                <Text mt={4}>
+                  {formatAmount(company.free_delivery_threshold ?? 0)}
+                </Text>
               </div>
 
               <div>
