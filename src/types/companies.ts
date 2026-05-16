@@ -22,6 +22,7 @@ export interface Company {
   supported_order_types: string[];
   min_order_amount: number;
   delivery_fee: number;
+  delivery_estimated_time: number;
   free_delivery_threshold: number;
   payment_accepting_style?: PaymentAcceptingStyle;
   created_at: string;
@@ -41,6 +42,7 @@ export interface CreateCompanyPayload {
   supported_order_types: string[];
   min_order_amount: number;
   delivery_fee: number;
+  delivery_estimated_time: number;
   free_delivery_threshold: number;
   payment_accepting_style: PaymentAcceptingStyle;
 }
