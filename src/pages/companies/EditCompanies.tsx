@@ -43,6 +43,7 @@ interface FormErrors {
   supported_order_types?: string;
   min_order_amount?: string;
   delivery_fee?: string;
+  delivery_estimated_time?: string;
   free_delivery_threshold?: string;
   payment_accepting_style?: string;
   form?: string;
@@ -63,6 +64,7 @@ const EMPTY_FORM: UpdateCompanyPayload = {
   supported_order_types: [],
   min_order_amount: 50000,
   delivery_fee: 20000,
+  delivery_estimated_time: 120,
   free_delivery_threshold: 200000,
   payment_accepting_style: "non-o",
 };
@@ -120,6 +122,7 @@ export default function EditCompanies() {
         supported_order_types: company.supported_order_types ?? [],
         min_order_amount: company.min_order_amount ?? 50000,
         delivery_fee: company.delivery_fee ?? 20000,
+        delivery_estimated_time: company.delivery_estimated_time ?? 120,
         free_delivery_threshold: company.free_delivery_threshold ?? 200000,
         payment_accepting_style: company.payment_accepting_style ?? "non-o",
       });
@@ -230,6 +233,14 @@ export default function EditCompanies() {
     }
 
     if (
+      !Number.isFinite(form.delivery_estimated_time) ||
+      Number(form.delivery_estimated_time) < 0
+    ) {
+      nextErrors.delivery_estimated_time =
+        "Delivery estimated time must be 0 or more.";
+    }
+
+    if (
       !Number.isFinite(form.free_delivery_threshold) ||
       Number(form.free_delivery_threshold) < 0
     ) {
@@ -268,6 +279,7 @@ export default function EditCompanies() {
           supported_order_types: form.supported_order_types ?? [],
           min_order_amount: Number(form.min_order_amount),
           delivery_fee: Number(form.delivery_fee),
+          delivery_estimated_time: Number(form.delivery_estimated_time),
           free_delivery_threshold: Number(form.free_delivery_threshold),
           payment_accepting_style: form.payment_accepting_style ?? "non-o",
         },
@@ -544,6 +556,25 @@ export default function EditCompanies() {
             min={0}
             thousandSeparator=","
             error={errors.delivery_fee}
+            required
+          />
+
+          <NumberInput
+            label="Delivery estimated time"
+            value={form.delivery_estimated_time ?? 0}
+            onChange={(value) => {
+              setForm((current) => ({
+                ...current,
+                delivery_estimated_time: typeof value === "number" ? value : 0,
+              }));
+              setErrors((current) => ({
+                ...current,
+                delivery_estimated_time: undefined,
+                form: undefined,
+              }));
+            }}
+            min={0}
+            error={errors.delivery_estimated_time}
             required
           />
 
