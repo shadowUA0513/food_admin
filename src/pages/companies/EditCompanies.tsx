@@ -18,6 +18,10 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { startTransition, useEffect, useState, type FormEvent } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
+import {
+  CompanyLocationSection,
+  TASHKENT_CENTER,
+} from "../../components/companies/CompanyLocationSection";
 import { useCompanyById, useUpdateCompany } from "../../service/companies";
 import { uploadImage } from "../../service/images";
 import {
@@ -35,6 +39,10 @@ interface FormErrors {
   name?: string;
   bot_token?: string;
   bot_username?: string;
+  address?: string;
+  lat?: string;
+  long?: string;
+  min_order_distance?: string;
   telegram_chat_id?: string;
   brand_color?: string;
   logo_url?: string;
@@ -55,6 +63,10 @@ const EMPTY_FORM: UpdateCompanyPayload = {
   name: "",
   bot_token: "",
   bot_username: "",
+  address: "",
+  lat: TASHKENT_CENTER.latitude,
+  long: TASHKENT_CENTER.longitude,
+  min_order_distance: 0,
   telegram_chat_id: null,
   phone_numbers: [],
   card_pans: [],
@@ -113,6 +125,10 @@ export default function EditCompanies() {
         name: company.name,
         bot_token: company.bot_token,
         bot_username: company.bot_username,
+        address: company.address ?? "",
+        lat: company.lat ?? 0,
+        long: company.long ?? 0,
+        min_order_distance: company.min_order_distance ?? 0,
         telegram_chat_id: company.telegram_chat_id,
         phone_numbers: company.phone_numbers ?? [],
         card_pans: company.card_pans ?? [],
@@ -200,6 +216,26 @@ export default function EditCompanies() {
       nextErrors.bot_username = "Bot username is required.";
     }
 
+    if (!Number.isFinite(form.lat) || Number(form.lat) < -90 || Number(form.lat) > 90) {
+      nextErrors.lat = "Latitude must be between -90 and 90.";
+    }
+
+    if (
+      !Number.isFinite(form.long) ||
+      Number(form.long) < -180 ||
+      Number(form.long) > 180
+    ) {
+      nextErrors.long = "Longitude must be between -180 and 180.";
+    }
+
+    if (
+      !Number.isFinite(form.min_order_distance) ||
+      Number(form.min_order_distance) < 0
+    ) {
+      nextErrors.min_order_distance =
+        "Minimum order distance must be 0 or more.";
+    }
+
     if (
       form.telegram_chat_id !== null &&
       (!Number.isInteger(form.telegram_chat_id) || !Number.isFinite(form.telegram_chat_id))
@@ -266,6 +302,10 @@ export default function EditCompanies() {
           name: form.name?.trim(),
           bot_token: form.bot_token?.trim(),
           bot_username: form.bot_username?.trim(),
+          address: form.address?.trim() ?? "",
+          lat: Number(form.lat),
+          long: Number(form.long),
+          min_order_distance: Number(form.min_order_distance),
           telegram_chat_id: form.telegram_chat_id ?? null,
           phone_numbers: (form.phone_numbers ?? [])
             .map((phoneNumber) => phoneNumber.trim())
@@ -383,6 +423,58 @@ export default function EditCompanies() {
             }}
             error={errors.bot_token}
             required
+          />
+
+          <CompanyLocationSection
+            address={form.address ?? ""}
+            latitude={form.lat ?? 0}
+            longitude={form.long ?? 0}
+            minOrderDistance={form.min_order_distance ?? 0}
+            errors={errors}
+            onAddressChange={(value) => {
+              setForm((current) => ({
+                ...current,
+                address: value,
+              }));
+              setErrors((current) => ({
+                ...current,
+                address: undefined,
+                form: undefined,
+              }));
+            }}
+            onLatitudeChange={(value) => {
+              setForm((current) => ({
+                ...current,
+                lat: value,
+              }));
+              setErrors((current) => ({
+                ...current,
+                lat: undefined,
+                form: undefined,
+              }));
+            }}
+            onLongitudeChange={(value) => {
+              setForm((current) => ({
+                ...current,
+                long: value,
+              }));
+              setErrors((current) => ({
+                ...current,
+                long: undefined,
+                form: undefined,
+              }));
+            }}
+            onMinOrderDistanceChange={(value) => {
+              setForm((current) => ({
+                ...current,
+                min_order_distance: value,
+              }));
+              setErrors((current) => ({
+                ...current,
+                min_order_distance: undefined,
+                form: undefined,
+              }));
+            }}
           />
 
           <NumberInput

@@ -24,6 +24,7 @@ import {
 } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
+import { isAppLanguage } from "../../i18n";
 import { useActiveCompanyId, useAuth } from "../../app/providers/AuthProvider";
 import { useCompanyById } from "../../service/companies";
 import type { Company } from "../../types/companies";
@@ -98,11 +99,15 @@ export default function CompanyDetailsPage() {
             <Select
               value={i18n.resolvedLanguage ?? i18n.language}
               onChange={(value) => {
-                if (value === "ru" || value === "uz") {
+                if (isAppLanguage(value)) {
                   void i18n.changeLanguage(value);
                 }
               }}
               data={[
+                {
+                  value: "en",
+                  label: t("common.languageEn", { defaultValue: "English" }),
+                },
                 { value: "ru", label: t("common.languageRu") },
                 { value: "uz", label: t("common.languageUz") },
               ]}

@@ -13,6 +13,10 @@ export interface Company {
   name: string;
   bot_token: string;
   bot_username: string;
+  address?: string;
+  lat?: number;
+  long?: number;
+  min_order_distance?: number;
   telegram_chat_id: number | null;
   phone_numbers: string[];
   card_pans: string[];
@@ -33,6 +37,10 @@ export interface CreateCompanyPayload {
   name: string;
   bot_token: string;
   bot_username: string;
+  address: string;
+  lat: number;
+  long: number;
+  min_order_distance: number;
   telegram_chat_id: number | null;
   phone_numbers: string[];
   card_pans: string[];

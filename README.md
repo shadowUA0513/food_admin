@@ -1,5 +1,14 @@
 # React + TypeScript + Vite
 
+## Environment Variables
+
+Create a `.env` file in the project root and copy values from `.env.example`.
+
+```env
+VITE_API_BASE_URL=
+VITE_YANDEX_MAPS_API_KEY=
+```
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:
