@@ -2,4 +2,5 @@ const fallbackBaseUrl = "https://dynamicrestaurantmanager-production.up.railway.
 
 export const env = {
   baseUrl: import.meta.env.VITE_API_BASE_URL ?? fallbackBaseUrl,
+  yandexMapsApiKey: import.meta.env.VITE_YANDEX_MAPS_API_KEY ?? "",
 };

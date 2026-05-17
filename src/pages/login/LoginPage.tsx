@@ -14,6 +14,7 @@ import { IconLock, IconPhoneCall } from "@tabler/icons-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { isAppLanguage } from "../../i18n";
 import { useAuth } from "../../app/providers/AuthProvider";
 import { PhoneNumberInput } from "../../components/common/PhoneNumberInput";
 import {
@@ -109,11 +110,15 @@ export default function LoginPage() {
         <Select
           value={i18n.resolvedLanguage ?? i18n.language}
           onChange={(value) => {
-            if (value === "ru" || value === "uz") {
+            if (isAppLanguage(value)) {
               void i18n.changeLanguage(value);
             }
           }}
           data={[
+            {
+              value: "en",
+              label: t("common.languageEn", { defaultValue: "English" }),
+            },
             { value: "ru", label: t("common.languageRu") },
             { value: "uz", label: t("common.languageUz") },
           ]}
