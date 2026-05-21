@@ -1,12 +1,32 @@
-export type PaymentAcceptingStyle = "non-o" | "o";
+export type PaymentAcceptingStyle = "click" | "payme" | "cash" | "card";
 
 export const PAYMENT_ACCEPTING_STYLE_OPTIONS: Array<{
   value: PaymentAcceptingStyle;
   label: string;
 }> = [
-  { value: "non-o", label: "non-o" },
-  { value: "o", label: "o" },
+  { value: "click", label: "Click" },
+  { value: "payme", label: "Payme" },
+  { value: "cash", label: "Cash" },
+  { value: "card", label: "Card" },
 ];
+
+export function formatPaymentAcceptingStyles(
+  styles?: PaymentAcceptingStyle[] | string[] | null,
+) {
+  if (!styles?.length) {
+    return "Not provided";
+  }
+
+  return styles
+    .map((style) => {
+      const option = PAYMENT_ACCEPTING_STYLE_OPTIONS.find(
+        (item) => item.value === style,
+      );
+
+      return option?.label ?? style;
+    })
+    .join(", ");
+}
 
 export interface Company {
   id: string;
@@ -28,7 +48,7 @@ export interface Company {
   delivery_fee: number;
   delivery_estimated_time: number;
   free_delivery_threshold: number;
-  payment_accepting_style?: PaymentAcceptingStyle;
+  payment_accepting_style?: PaymentAcceptingStyle[];
   created_at: string;
   updated_at: string;
 }
@@ -52,7 +72,7 @@ export interface CreateCompanyPayload {
   delivery_fee: number;
   delivery_estimated_time: number;
   free_delivery_threshold: number;
-  payment_accepting_style: PaymentAcceptingStyle;
+  payment_accepting_style: PaymentAcceptingStyle[];
 }
 
 export type UpdateCompanyPayload = Partial<CreateCompanyPayload>;

@@ -27,7 +27,10 @@ import { Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
 import { isAppLanguage } from "../../i18n";
 import { useActiveCompanyId, useAuth } from "../../app/providers/AuthProvider";
 import { useCompanyById } from "../../service/companies";
-import type { Company } from "../../types/companies";
+import {
+  formatPaymentAcceptingStyles,
+  type Company,
+} from "../../types/companies";
 
 export default function CompanyDetailsPage() {
   const { companyId: routeCompanyId } = useParams();
@@ -149,7 +152,8 @@ export default function CompanyDetailsPage() {
           <Stack gap={4} align="flex-end">
             <Title order={1}>{company?.name ?? "Company"}</Title>
             <Badge color="orange" variant="light">
-              Payment accepting style: {company?.payment_accepting_style ?? "non-o"}
+              Payment accepting style:{" "}
+              {formatPaymentAcceptingStyles(company?.payment_accepting_style)}
             </Badge>
           </Stack>
         </Group>
