@@ -1,6 +1,5 @@
 import {
   Alert,
-  Box,
   Button,
   ColorInput,
   FileInput,
@@ -10,21 +9,13 @@ import {
   MultiSelect,
   NumberInput,
   SegmentedControl,
-  SimpleGrid,
   Stack,
   TagsInput,
   Text,
   TextInput,
-  Title,
 } from "@mantine/core";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  startTransition,
-  useEffect,
-  useState,
-  type FormEvent,
-  type ReactNode,
-} from "react";
+import { startTransition, useEffect, useState, type FormEvent } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   CompanyLocationSection,
@@ -103,32 +94,6 @@ const ORDER_TYPE_OPTIONS = [
   { value: "delivery-anywhere", label: "Delivery anywhere" },
   { value: "delivery-to-organization", label: "Delivery to organization" },
 ];
-
-function SectionCard({
-  title,
-  description,
-  children,
-}: {
-  title: string;
-  description?: string;
-  children: ReactNode;
-}) {
-  return (
-    <Paper withBorder radius="lg" p="lg">
-      <Stack gap="md">
-        <div>
-          <Title order={5}>{title}</Title>
-          {description ? (
-            <Text c="dimmed" size="sm" mt={4}>
-              {description}
-            </Text>
-          ) : null}
-        </div>
-        {children}
-      </Stack>
-    </Paper>
-  );
-}
 
 export default function EditCompanies() {
   const location = useLocation();
