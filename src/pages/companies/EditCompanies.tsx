@@ -8,7 +8,6 @@ import {
   Modal,
   MultiSelect,
   NumberInput,
-  Select,
   SegmentedControl,
   Stack,
   TagsInput,
@@ -27,7 +26,6 @@ import { uploadImage } from "../../service/images";
 import {
   PAYMENT_ACCEPTING_STYLE_OPTIONS,
   type Company,
-  type PaymentAcceptingStyle,
   type UpdateCompanyPayload,
 } from "../../types/companies";
 import {
@@ -78,7 +76,7 @@ const EMPTY_FORM: UpdateCompanyPayload = {
   delivery_fee: 20000,
   delivery_estimated_time: 120,
   free_delivery_threshold: 200000,
-  payment_accepting_style: "non-o",
+  payment_accepting_style: [],
 };
 
 const BRAND_COLOR_SWATCHES = [
@@ -140,7 +138,7 @@ export default function EditCompanies() {
         delivery_fee: company.delivery_fee ?? 20000,
         delivery_estimated_time: company.delivery_estimated_time ?? 120,
         free_delivery_threshold: company.free_delivery_threshold ?? 200000,
-        payment_accepting_style: company.payment_accepting_style ?? "non-o",
+        payment_accepting_style: company.payment_accepting_style ?? [],
       });
       setErrors({});
     });
@@ -284,6 +282,11 @@ export default function EditCompanies() {
         "Free delivery threshold must be 0 or more.";
     }
 
+    if (!form.payment_accepting_style?.length) {
+      nextErrors.payment_accepting_style =
+        "Select at least one payment accepting style.";
+    }
+
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
@@ -321,7 +324,7 @@ export default function EditCompanies() {
           delivery_fee: Number(form.delivery_fee),
           delivery_estimated_time: Number(form.delivery_estimated_time),
           free_delivery_threshold: Number(form.free_delivery_threshold),
-          payment_accepting_style: form.payment_accepting_style ?? "non-o",
+          payment_accepting_style: form.payment_accepting_style ?? [],
         },
       });
       await queryClient.invalidateQueries({ queryKey: ["companies"] });
@@ -590,15 +593,16 @@ export default function EditCompanies() {
             required
           />
 
-          <Select
+          <MultiSelect
             label="Payment accepting style"
-            placeholder="Select payment accepting style"
+            placeholder="Select payment accepting styles"
             data={PAYMENT_ACCEPTING_STYLE_OPTIONS}
-            value={form.payment_accepting_style ?? "non-o"}
+            value={form.payment_accepting_style ?? []}
             onChange={(value) => {
               setForm((current) => ({
                 ...current,
-                payment_accepting_style: (value ?? "non-o") as PaymentAcceptingStyle,
+                payment_accepting_style:
+                  value as UpdateCompanyPayload["payment_accepting_style"],
               }));
               setErrors((current) => ({
                 ...current,
@@ -607,7 +611,6 @@ export default function EditCompanies() {
               }));
             }}
             error={errors.payment_accepting_style}
-            allowDeselect={false}
             required
           />
 

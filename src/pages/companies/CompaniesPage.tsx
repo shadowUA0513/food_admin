@@ -18,7 +18,10 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useCompanies, useDeleteCompany } from "../../service/companies";
-import type { Company } from "../../types/companies";
+import {
+  formatPaymentAcceptingStyles,
+  type Company,
+} from "../../types/companies";
 import {
   showErrorNotification,
   showSuccessNotification,
@@ -210,7 +213,9 @@ export default function CompaniesPage() {
                 <Text size="xs" c="dimmed" tt="uppercase" fw={700}>
                   Payment accepting style
                 </Text>
-                <Text mt={4}>{company.payment_accepting_style ?? "non-o"}</Text>
+                <Text mt={4}>
+                  {formatPaymentAcceptingStyles(company.payment_accepting_style)}
+                </Text>
               </div>
 
               <div>

@@ -7,7 +7,6 @@ import {
   Modal,
   MultiSelect,
   NumberInput,
-  Select,
   Stack,
   TagsInput,
   TextInput,
@@ -72,7 +71,7 @@ const EMPTY_FORM: CreateCompanyPayload = {
   delivery_fee: 20000,
   delivery_estimated_time: 120,
   free_delivery_threshold: 200000,
-  payment_accepting_style: "non-o",
+  payment_accepting_style: [],
 };
 
 const BRAND_COLOR_SWATCHES = [
@@ -233,6 +232,11 @@ export default function AddCompanies() {
     ) {
       nextErrors.free_delivery_threshold =
         "Free delivery threshold must be 0 or more.";
+    }
+
+    if (form.payment_accepting_style.length === 0) {
+      nextErrors.payment_accepting_style =
+        "Select at least one payment accepting style.";
     }
 
     setErrors(nextErrors);
@@ -519,15 +523,16 @@ export default function AddCompanies() {
             required
           />
 
-          <Select
+          <MultiSelect
             label="Payment accepting style"
-            placeholder="Select payment accepting style"
+            placeholder="Select payment accepting styles"
             data={PAYMENT_ACCEPTING_STYLE_OPTIONS}
             value={form.payment_accepting_style}
             onChange={(value) => {
               setForm((current) => ({
                 ...current,
-                payment_accepting_style: (value ?? "non-o") as CreateCompanyPayload["payment_accepting_style"],
+                payment_accepting_style:
+                  value as CreateCompanyPayload["payment_accepting_style"],
               }));
               setErrors((current) => ({
                 ...current,
@@ -536,7 +541,6 @@ export default function AddCompanies() {
               }));
             }}
             error={errors.payment_accepting_style}
-            allowDeselect={false}
             required
           />
 
