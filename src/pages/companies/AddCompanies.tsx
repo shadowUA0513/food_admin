@@ -1,6 +1,5 @@
 import {
   Alert,
-  Box,
   Button,
   ColorInput,
   FileInput,
@@ -10,12 +9,10 @@ import {
   NumberInput,
   Stack,
   TagsInput,
-  Text,
   TextInput,
-  Title,
 } from "@mantine/core";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   CompanyLocationSection,
@@ -93,31 +90,31 @@ const ORDER_TYPE_OPTIONS = [
   { value: "delivery-to-organization", label: "Delivery to organization" },
 ];
 
-function SectionCard({
-  title,
-  description,
-  children,
-}: {
-  title: string;
-  description?: string;
-  children: ReactNode;
-}) {
-  return (
-    <Paper withBorder radius="lg" p="lg">
-      <Stack gap="md">
-        <div>
-          <Title order={5}>{title}</Title>
-          {description ? (
-            <Text c="dimmed" size="sm" mt={4}>
-              {description}
-            </Text>
-          ) : null}
-        </div>
-        {children}
-      </Stack>
-    </Paper>
-  );
-}
+// function SectionCard({
+//   title,
+//   description,
+//   children,
+// }: {
+//   title: string;
+//   description?: string;
+//   children: ReactNode;
+// }) {
+//   return (
+//     <Paper withBorder radius="lg" p="lg">
+//       <Stack gap="md">
+//         <div>
+//           <Title order={5}>{title}</Title>
+//           {description ? (
+//             <Text c="dimmed" size="sm" mt={4}>
+//               {description}
+//             </Text>
+//           ) : null}
+//         </div>
+//         {children}
+//       </Stack>
+//     </Paper>
+//   );
+// }
 
 export default function AddCompanies() {
   const navigate = useNavigate();
@@ -175,7 +172,9 @@ export default function AddCompanies() {
       }));
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Failed to upload the selected image.";
+        error instanceof Error
+          ? error.message
+          : "Failed to upload the selected image.";
 
       setErrors((current) => ({
         ...current,
@@ -220,7 +219,8 @@ export default function AddCompanies() {
 
     if (
       form.telegram_chat_id !== null &&
-      (!Number.isInteger(form.telegram_chat_id) || !Number.isFinite(form.telegram_chat_id))
+      (!Number.isInteger(form.telegram_chat_id) ||
+        !Number.isFinite(form.telegram_chat_id))
     ) {
       nextErrors.telegram_chat_id = "Telegram chat ID must be a whole number.";
     }
@@ -445,7 +445,10 @@ export default function AddCompanies() {
             onChange={(value) => {
               setForm((current) => ({
                 ...current,
-                telegram_chat_id: typeof value === "number" && Number.isFinite(value) ? value : null,
+                telegram_chat_id:
+                  typeof value === "number" && Number.isFinite(value)
+                    ? value
+                    : null,
               }));
               setErrors((current) => ({
                 ...current,
@@ -490,7 +493,9 @@ export default function AddCompanies() {
             onChange={handleLogoFileChange}
             error={errors.logo_url}
             description={
-              isUploadingLogo ? "Uploading image..." : "Select an image file to upload."
+              isUploadingLogo
+                ? "Uploading image..."
+                : "Select an image file to upload."
             }
           />
 
@@ -667,146 +672,11 @@ export default function AddCompanies() {
               loading={createCompanyMutation.isPending || isUploadingLogo}
               disabled={isUploadingLogo}
             >
-              <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
-                <MultiSelect
-                  label="Supported order types"
-                  placeholder="Select order types"
-                  data={ORDER_TYPE_OPTIONS}
-                  value={form.supported_order_types}
-                  onChange={(value) => {
-                    setForm((current) => ({
-                      ...current,
-                      supported_order_types: value,
-                    }));
-                    setErrors((current) => ({
-                      ...current,
-                      supported_order_types: undefined,
-                      form: undefined,
-                    }));
-                  }}
-                  error={errors.supported_order_types}
-                  required
-                />
-
-                <Select
-                  label="Payment accepting style"
-                  placeholder="Select payment accepting style"
-                  data={PAYMENT_ACCEPTING_STYLE_OPTIONS}
-                  value={form.payment_accepting_style}
-                  onChange={(value) => {
-                    setForm((current) => ({
-                      ...current,
-                      payment_accepting_style: (value ?? "non-o") as CreateCompanyPayload["payment_accepting_style"],
-                    }));
-                    setErrors((current) => ({
-                      ...current,
-                      payment_accepting_style: undefined,
-                      form: undefined,
-                    }));
-                  }}
-                  error={errors.payment_accepting_style}
-                  allowDeselect={false}
-                  required
-                />
-
-                <NumberInput
-                  label="Minimum order amount"
-                  value={form.min_order_amount}
-                  onChange={(value) => {
-                    setForm((current) => ({
-                      ...current,
-                      min_order_amount: typeof value === "number" ? value : 0,
-                    }));
-                    setErrors((current) => ({
-                      ...current,
-                      min_order_amount: undefined,
-                      form: undefined,
-                    }));
-                  }}
-                  min={0}
-                  thousandSeparator=","
-                  error={errors.min_order_amount}
-                  required
-                />
-
-                <NumberInput
-                  label="Delivery fee"
-                  value={form.delivery_fee}
-                  onChange={(value) => {
-                    setForm((current) => ({
-                      ...current,
-                      delivery_fee: typeof value === "number" ? value : 0,
-                    }));
-                    setErrors((current) => ({
-                      ...current,
-                      delivery_fee: undefined,
-                      form: undefined,
-                    }));
-                  }}
-                  min={0}
-                  thousandSeparator=","
-                  error={errors.delivery_fee}
-                  required
-                />
-
-                <NumberInput
-                  label="Delivery estimated time"
-                  value={form.delivery_estimated_time}
-                  onChange={(value) => {
-                    setForm((current) => ({
-                      ...current,
-                      delivery_estimated_time: typeof value === "number" ? value : 0,
-                    }));
-                    setErrors((current) => ({
-                      ...current,
-                      delivery_estimated_time: undefined,
-                      form: undefined,
-                    }));
-                  }}
-                  min={0}
-                  error={errors.delivery_estimated_time}
-                  required
-                />
-
-                <NumberInput
-                  label="Free delivery threshold"
-                  value={form.free_delivery_threshold}
-                  onChange={(value) => {
-                    setForm((current) => ({
-                      ...current,
-                      free_delivery_threshold: typeof value === "number" ? value : 0,
-                    }));
-                    setErrors((current) => ({
-                      ...current,
-                      free_delivery_threshold: undefined,
-                      form: undefined,
-                    }));
-                  }}
-                  min={0}
-                  thousandSeparator=","
-                  error={errors.free_delivery_threshold}
-                  required
-                />
-              </SimpleGrid>
-            </SectionCard>
-
-            <Paper withBorder radius="lg" p="md">
-              <Group justify="flex-end">
-                <Button variant="default" onClick={handleClose}>
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  loading={createCompanyMutation.isPending || isUploadingLogo}
-                  disabled={isUploadingLogo}
-                >
-                  Create
-                </Button>
-              </Group>
-            </Paper>
-          </Stack>
-        </form>
-      </Box>
+              Create
+            </Button>
+          </Group>
+        </Stack>
+      </form>
     </Modal>
   );
 }

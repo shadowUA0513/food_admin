@@ -1,6 +1,5 @@
 import {
   Alert,
-  Box,
   Button,
   ColorInput,
   FileInput,
@@ -10,21 +9,13 @@ import {
   MultiSelect,
   NumberInput,
   SegmentedControl,
-  SimpleGrid,
   Stack,
   TagsInput,
   Text,
   TextInput,
-  Title,
 } from "@mantine/core";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  startTransition,
-  useEffect,
-  useState,
-  type FormEvent,
-  type ReactNode,
-} from "react";
+import { startTransition, useEffect, useState, type FormEvent } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   CompanyLocationSection,
@@ -104,31 +95,31 @@ const ORDER_TYPE_OPTIONS = [
   { value: "delivery-to-organization", label: "Delivery to organization" },
 ];
 
-function SectionCard({
-  title,
-  description,
-  children,
-}: {
-  title: string;
-  description?: string;
-  children: ReactNode;
-}) {
-  return (
-    <Paper withBorder radius="lg" p="lg">
-      <Stack gap="md">
-        <div>
-          <Title order={5}>{title}</Title>
-          {description ? (
-            <Text c="dimmed" size="sm" mt={4}>
-              {description}
-            </Text>
-          ) : null}
-        </div>
-        {children}
-      </Stack>
-    </Paper>
-  );
-}
+// function SectionCard({
+//   title,
+//   description,
+//   children,
+// }: {
+//   title: string;
+//   description?: string;
+//   children: ReactNode;
+// }) {
+//   return (
+//     <Paper withBorder radius="lg" p="lg">
+//       <Stack gap="md">
+//         <div>
+//           <Title order={5}>{title}</Title>
+//           {description ? (
+//             <Text c="dimmed" size="sm" mt={4}>
+//               {description}
+//             </Text>
+//           ) : null}
+//         </div>
+//         {children}
+//       </Stack>
+//     </Paper>
+//   );
+// }
 
 export default function EditCompanies() {
   const location = useLocation();
@@ -136,13 +127,9 @@ export default function EditCompanies() {
   const { companyId } = useParams();
   const queryClient = useQueryClient();
   const updateCompanyMutation = useUpdateCompany();
-  const locationCompany =
-    (location.state as { company?: Company } | null)?.company;
-  const {
-    data: fetchedCompany,
-    isLoading,
-    error,
-  } = useCompanyById(companyId);
+  const locationCompany = (location.state as { company?: Company } | null)
+    ?.company;
+  const { data: fetchedCompany, isLoading, error } = useCompanyById(companyId);
   const company = fetchedCompany ?? locationCompany;
   const [form, setForm] = useState<UpdateCompanyPayload>(EMPTY_FORM);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -222,7 +209,9 @@ export default function EditCompanies() {
       }));
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Failed to upload the selected image.";
+        error instanceof Error
+          ? error.message
+          : "Failed to upload the selected image.";
 
       setErrors((current) => ({
         ...current,
@@ -249,7 +238,11 @@ export default function EditCompanies() {
       nextErrors.bot_username = "Bot username is required.";
     }
 
-    if (!Number.isFinite(form.lat) || Number(form.lat) < -90 || Number(form.lat) > 90) {
+    if (
+      !Number.isFinite(form.lat) ||
+      Number(form.lat) < -90 ||
+      Number(form.lat) > 90
+    ) {
       nextErrors.lat = "Latitude must be between -90 and 90.";
     }
 
@@ -271,7 +264,8 @@ export default function EditCompanies() {
 
     if (
       form.telegram_chat_id !== null &&
-      (!Number.isInteger(form.telegram_chat_id) || !Number.isFinite(form.telegram_chat_id))
+      (!Number.isInteger(form.telegram_chat_id) ||
+        !Number.isFinite(form.telegram_chat_id))
     ) {
       nextErrors.telegram_chat_id = "Telegram chat ID must be a whole number.";
     }
@@ -401,379 +395,386 @@ export default function EditCompanies() {
           <Text c="dimmed">Loading company...</Text>
         </Stack>
       ) : (
-      <form onSubmit={handleSubmit}>
-        <Stack gap="md">
-          <TextInput
-            label="Company name"
-            value={form.name ?? ""}
-            onChange={(event) => {
-              const value = event.currentTarget.value;
+        <form onSubmit={handleSubmit}>
+          <Stack gap="md">
+            <TextInput
+              label="Company name"
+              value={form.name ?? ""}
+              onChange={(event) => {
+                const value = event.currentTarget.value;
 
-              setForm((current) => ({
-                ...current,
-                name: value,
-              }));
-              setErrors((current) => ({
-                ...current,
-                name: undefined,
-                form: undefined,
-              }));
-            }}
-            error={errors.name}
-            required
-          />
-
-          <TextInput
-            label="Bot username"
-            value={form.bot_username ?? ""}
-            onChange={(event) => {
-              const value = event.currentTarget.value;
-
-              setForm((current) => ({
-                ...current,
-                bot_username: value,
-              }));
-              setErrors((current) => ({
-                ...current,
-                bot_username: undefined,
-                form: undefined,
-              }));
-            }}
-            error={errors.bot_username}
-            required
-          />
-
-          <TextInput
-            label="Bot token"
-            value={form.bot_token ?? ""}
-            onChange={(event) => {
-              const value = event.currentTarget.value;
-
-              setForm((current) => ({
-                ...current,
-                bot_token: value,
-              }));
-              setErrors((current) => ({
-                ...current,
-                bot_token: undefined,
-                form: undefined,
-              }));
-            }}
-            error={errors.bot_token}
-            required
-          />
-
-          <CompanyLocationSection
-            address={form.address ?? ""}
-            latitude={form.lat ?? 0}
-            longitude={form.long ?? 0}
-            minOrderDistance={form.min_order_distance ?? 0}
-            errors={errors}
-            onAddressChange={(value) => {
-              setForm((current) => ({
-                ...current,
-                address: value,
-              }));
-              setErrors((current) => ({
-                ...current,
-                address: undefined,
-                form: undefined,
-              }));
-            }}
-            onLatitudeChange={(value) => {
-              setForm((current) => ({
-                ...current,
-                lat: value,
-              }));
-              setErrors((current) => ({
-                ...current,
-                lat: undefined,
-                form: undefined,
-              }));
-            }}
-            onLongitudeChange={(value) => {
-              setForm((current) => ({
-                ...current,
-                long: value,
-              }));
-              setErrors((current) => ({
-                ...current,
-                long: undefined,
-                form: undefined,
-              }));
-            }}
-            onMinOrderDistanceChange={(value) => {
-              setForm((current) => ({
-                ...current,
-                min_order_distance: value,
-              }));
-              setErrors((current) => ({
-                ...current,
-                min_order_distance: undefined,
-                form: undefined,
-              }));
-            }}
-          />
-
-          <NumberInput
-            label="Telegram chat ID"
-            value={form.telegram_chat_id ?? ""}
-            onChange={(value) => {
-              setForm((current) => ({
-                ...current,
-                telegram_chat_id: typeof value === "number" && Number.isFinite(value) ? value : null,
-              }));
-              setErrors((current) => ({
-                ...current,
-                telegram_chat_id: undefined,
-                form: undefined,
-              }));
-            }}
-            error={errors.telegram_chat_id}
-            placeholder="Optional chat ID"
-            allowDecimal={false}
-            allowNegative={true}
-            hideControls
-          />
-
-          <ColorInput
-            label="Brand color"
-            placeholder="#F08C00"
-            value={form.brand_color ?? ""}
-            onChange={(value) => {
-              setForm((current) => ({
-                ...current,
-                brand_color: value,
-              }));
-              setErrors((current) => ({
-                ...current,
-                brand_color: undefined,
-                form: undefined,
-              }));
-            }}
-            swatches={BRAND_COLOR_SWATCHES}
-            withPicker
-            format="hex"
-            error={errors.brand_color}
-            required
-          />
-
-          <FileInput
-            label="Logo image"
-            placeholder="Choose an image"
-            accept="image/*"
-            clearable
-            onChange={handleLogoFileChange}
-            error={errors.logo_url}
-            description={
-              isUploadingLogo ? "Uploading image..." : "Select an image file to upload."
-            }
-          />
-
-          <TagsInput
-            label="Phone numbers"
-            placeholder="Add phone numbers"
-            value={form.phone_numbers ?? []}
-            onChange={(value) => {
-              setForm((current) => ({
-                ...current,
-                phone_numbers: value,
-              }));
-              setErrors((current) => ({
-                ...current,
-                phone_numbers: undefined,
-                form: undefined,
-              }));
-            }}
-            error={errors.phone_numbers}
-            clearable
-          />
-
-          <TagsInput
-            label="Card PANs"
-            placeholder="Add card numbers"
-            value={form.card_pans ?? []}
-            onChange={(value) => {
-              setForm((current) => ({
-                ...current,
-                card_pans: value,
-              }));
-              setErrors((current) => ({
-                ...current,
-                card_pans: undefined,
-                form: undefined,
-              }));
-            }}
-            error={errors.card_pans}
-            clearable
-          />
-
-          <MultiSelect
-            label="Supported order types"
-            placeholder="Select order types"
-            data={ORDER_TYPE_OPTIONS}
-            value={form.supported_order_types ?? []}
-            onChange={(value) => {
-              setForm((current) => ({
-                ...current,
-                supported_order_types: value,
-              }));
-              setErrors((current) => ({
-                ...current,
-                supported_order_types: undefined,
-                form: undefined,
-              }));
-            }}
-            error={errors.supported_order_types}
-            required
-          />
-
-          <MultiSelect
-            label="Payment accepting style"
-            placeholder="Select payment accepting styles"
-            data={PAYMENT_ACCEPTING_STYLE_OPTIONS}
-            value={form.payment_accepting_style ?? []}
-            onChange={(value) => {
-              setForm((current) => ({
-                ...current,
-                payment_accepting_style:
-                  value as UpdateCompanyPayload["payment_accepting_style"],
-              }));
-              setErrors((current) => ({
-                ...current,
-                payment_accepting_style: undefined,
-                form: undefined,
-              }));
-            }}
-            error={errors.payment_accepting_style}
-            required
-          />
-
-          <NumberInput
-            label="Minimum order amount"
-            value={form.min_order_amount ?? 0}
-            onChange={(value) => {
-              setForm((current) => ({
-                ...current,
-                min_order_amount: typeof value === "number" ? value : 0,
-              }));
-              setErrors((current) => ({
-                ...current,
-                min_order_amount: undefined,
-                form: undefined,
-              }));
-            }}
-            min={0}
-            thousandSeparator=","
-            error={errors.min_order_amount}
-            required
-          />
-
-          <NumberInput
-            label="Delivery fee"
-            value={form.delivery_fee ?? 0}
-            onChange={(value) => {
-              setForm((current) => ({
-                ...current,
-                delivery_fee: typeof value === "number" ? value : 0,
-              }));
-              setErrors((current) => ({
-                ...current,
-                delivery_fee: undefined,
-                form: undefined,
-              }));
-            }}
-            min={0}
-            thousandSeparator=","
-            error={errors.delivery_fee}
-            required
-          />
-
-          <NumberInput
-            label="Delivery estimated time"
-            value={form.delivery_estimated_time ?? 0}
-            onChange={(value) => {
-              setForm((current) => ({
-                ...current,
-                delivery_estimated_time: typeof value === "number" ? value : 0,
-              }));
-              setErrors((current) => ({
-                ...current,
-                delivery_estimated_time: undefined,
-                form: undefined,
-              }));
-            }}
-            min={0}
-            error={errors.delivery_estimated_time}
-            required
-          />
-
-          <NumberInput
-            label="Free delivery threshold"
-            value={form.free_delivery_threshold ?? 0}
-            onChange={(value) => {
-              setForm((current) => ({
-                ...current,
-                free_delivery_threshold: typeof value === "number" ? value : 0,
-              }));
-              setErrors((current) => ({
-                ...current,
-                free_delivery_threshold: undefined,
-                form: undefined,
-              }));
-            }}
-            min={0}
-            thousandSeparator=","
-            error={errors.free_delivery_threshold}
-            required
-          />
-
-          <div>
-            <Text size="sm" fw={500} mb={8}>
-              Status
-            </Text>
-            <SegmentedControl
-              fullWidth
-              radius="md"
-              size="md"
-              value={form.is_active ? "active" : "inactive"}
-              onChange={(value) => {
                 setForm((current) => ({
                   ...current,
-                  is_active: value === "active",
+                  name: value,
                 }));
                 setErrors((current) => ({
                   ...current,
+                  name: undefined,
                   form: undefined,
                 }));
               }}
-              data={[
-                { label: "Active", value: "active" },
-                { label: "Inactive", value: "inactive" },
-              ]}
+              error={errors.name}
+              required
             />
-          </div>
 
-          {errors.form ? (
-            <Alert color="red" variant="light">
-              {errors.form}
-            </Alert>
-          ) : null}
+            <TextInput
+              label="Bot username"
+              value={form.bot_username ?? ""}
+              onChange={(event) => {
+                const value = event.currentTarget.value;
 
-          <Group justify="flex-end">
-            <Button variant="default" onClick={handleClose}>
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              loading={updateCompanyMutation.isPending || isUploadingLogo}
-              disabled={isUploadingLogo}
-            >
-              Save
-            </Button>
-          </Group>
-        </Stack>
-      </form>
+                setForm((current) => ({
+                  ...current,
+                  bot_username: value,
+                }));
+                setErrors((current) => ({
+                  ...current,
+                  bot_username: undefined,
+                  form: undefined,
+                }));
+              }}
+              error={errors.bot_username}
+              required
+            />
+
+            <TextInput
+              label="Bot token"
+              value={form.bot_token ?? ""}
+              onChange={(event) => {
+                const value = event.currentTarget.value;
+
+                setForm((current) => ({
+                  ...current,
+                  bot_token: value,
+                }));
+                setErrors((current) => ({
+                  ...current,
+                  bot_token: undefined,
+                  form: undefined,
+                }));
+              }}
+              error={errors.bot_token}
+              required
+            />
+
+            <CompanyLocationSection
+              address={form.address ?? ""}
+              latitude={form.lat ?? 0}
+              longitude={form.long ?? 0}
+              minOrderDistance={form.min_order_distance ?? 0}
+              errors={errors}
+              onAddressChange={(value) => {
+                setForm((current) => ({
+                  ...current,
+                  address: value,
+                }));
+                setErrors((current) => ({
+                  ...current,
+                  address: undefined,
+                  form: undefined,
+                }));
+              }}
+              onLatitudeChange={(value) => {
+                setForm((current) => ({
+                  ...current,
+                  lat: value,
+                }));
+                setErrors((current) => ({
+                  ...current,
+                  lat: undefined,
+                  form: undefined,
+                }));
+              }}
+              onLongitudeChange={(value) => {
+                setForm((current) => ({
+                  ...current,
+                  long: value,
+                }));
+                setErrors((current) => ({
+                  ...current,
+                  long: undefined,
+                  form: undefined,
+                }));
+              }}
+              onMinOrderDistanceChange={(value) => {
+                setForm((current) => ({
+                  ...current,
+                  min_order_distance: value,
+                }));
+                setErrors((current) => ({
+                  ...current,
+                  min_order_distance: undefined,
+                  form: undefined,
+                }));
+              }}
+            />
+
+            <NumberInput
+              label="Telegram chat ID"
+              value={form.telegram_chat_id ?? ""}
+              onChange={(value) => {
+                setForm((current) => ({
+                  ...current,
+                  telegram_chat_id:
+                    typeof value === "number" && Number.isFinite(value)
+                      ? value
+                      : null,
+                }));
+                setErrors((current) => ({
+                  ...current,
+                  telegram_chat_id: undefined,
+                  form: undefined,
+                }));
+              }}
+              error={errors.telegram_chat_id}
+              placeholder="Optional chat ID"
+              allowDecimal={false}
+              allowNegative={true}
+              hideControls
+            />
+
+            <ColorInput
+              label="Brand color"
+              placeholder="#F08C00"
+              value={form.brand_color ?? ""}
+              onChange={(value) => {
+                setForm((current) => ({
+                  ...current,
+                  brand_color: value,
+                }));
+                setErrors((current) => ({
+                  ...current,
+                  brand_color: undefined,
+                  form: undefined,
+                }));
+              }}
+              swatches={BRAND_COLOR_SWATCHES}
+              withPicker
+              format="hex"
+              error={errors.brand_color}
+              required
+            />
+
+            <FileInput
+              label="Logo image"
+              placeholder="Choose an image"
+              accept="image/*"
+              clearable
+              onChange={handleLogoFileChange}
+              error={errors.logo_url}
+              description={
+                isUploadingLogo
+                  ? "Uploading image..."
+                  : "Select an image file to upload."
+              }
+            />
+
+            <TagsInput
+              label="Phone numbers"
+              placeholder="Add phone numbers"
+              value={form.phone_numbers ?? []}
+              onChange={(value) => {
+                setForm((current) => ({
+                  ...current,
+                  phone_numbers: value,
+                }));
+                setErrors((current) => ({
+                  ...current,
+                  phone_numbers: undefined,
+                  form: undefined,
+                }));
+              }}
+              error={errors.phone_numbers}
+              clearable
+            />
+
+            <TagsInput
+              label="Card PANs"
+              placeholder="Add card numbers"
+              value={form.card_pans ?? []}
+              onChange={(value) => {
+                setForm((current) => ({
+                  ...current,
+                  card_pans: value,
+                }));
+                setErrors((current) => ({
+                  ...current,
+                  card_pans: undefined,
+                  form: undefined,
+                }));
+              }}
+              error={errors.card_pans}
+              clearable
+            />
+
+            <MultiSelect
+              label="Supported order types"
+              placeholder="Select order types"
+              data={ORDER_TYPE_OPTIONS}
+              value={form.supported_order_types ?? []}
+              onChange={(value) => {
+                setForm((current) => ({
+                  ...current,
+                  supported_order_types: value,
+                }));
+                setErrors((current) => ({
+                  ...current,
+                  supported_order_types: undefined,
+                  form: undefined,
+                }));
+              }}
+              error={errors.supported_order_types}
+              required
+            />
+
+            <MultiSelect
+              label="Payment accepting style"
+              placeholder="Select payment accepting styles"
+              data={PAYMENT_ACCEPTING_STYLE_OPTIONS}
+              value={form.payment_accepting_style ?? []}
+              onChange={(value) => {
+                setForm((current) => ({
+                  ...current,
+                  payment_accepting_style:
+                    value as UpdateCompanyPayload["payment_accepting_style"],
+                }));
+                setErrors((current) => ({
+                  ...current,
+                  payment_accepting_style: undefined,
+                  form: undefined,
+                }));
+              }}
+              error={errors.payment_accepting_style}
+              required
+            />
+
+            <NumberInput
+              label="Minimum order amount"
+              value={form.min_order_amount ?? 0}
+              onChange={(value) => {
+                setForm((current) => ({
+                  ...current,
+                  min_order_amount: typeof value === "number" ? value : 0,
+                }));
+                setErrors((current) => ({
+                  ...current,
+                  min_order_amount: undefined,
+                  form: undefined,
+                }));
+              }}
+              min={0}
+              thousandSeparator=","
+              error={errors.min_order_amount}
+              required
+            />
+
+            <NumberInput
+              label="Delivery fee"
+              value={form.delivery_fee ?? 0}
+              onChange={(value) => {
+                setForm((current) => ({
+                  ...current,
+                  delivery_fee: typeof value === "number" ? value : 0,
+                }));
+                setErrors((current) => ({
+                  ...current,
+                  delivery_fee: undefined,
+                  form: undefined,
+                }));
+              }}
+              min={0}
+              thousandSeparator=","
+              error={errors.delivery_fee}
+              required
+            />
+
+            <NumberInput
+              label="Delivery estimated time"
+              value={form.delivery_estimated_time ?? 0}
+              onChange={(value) => {
+                setForm((current) => ({
+                  ...current,
+                  delivery_estimated_time:
+                    typeof value === "number" ? value : 0,
+                }));
+                setErrors((current) => ({
+                  ...current,
+                  delivery_estimated_time: undefined,
+                  form: undefined,
+                }));
+              }}
+              min={0}
+              error={errors.delivery_estimated_time}
+              required
+            />
+
+            <NumberInput
+              label="Free delivery threshold"
+              value={form.free_delivery_threshold ?? 0}
+              onChange={(value) => {
+                setForm((current) => ({
+                  ...current,
+                  free_delivery_threshold:
+                    typeof value === "number" ? value : 0,
+                }));
+                setErrors((current) => ({
+                  ...current,
+                  free_delivery_threshold: undefined,
+                  form: undefined,
+                }));
+              }}
+              min={0}
+              thousandSeparator=","
+              error={errors.free_delivery_threshold}
+              required
+            />
+
+            <div>
+              <Text size="sm" fw={500} mb={8}>
+                Status
+              </Text>
+              <SegmentedControl
+                fullWidth
+                radius="md"
+                size="md"
+                value={form.is_active ? "active" : "inactive"}
+                onChange={(value) => {
+                  setForm((current) => ({
+                    ...current,
+                    is_active: value === "active",
+                  }));
+                  setErrors((current) => ({
+                    ...current,
+                    form: undefined,
+                  }));
+                }}
+                data={[
+                  { label: "Active", value: "active" },
+                  { label: "Inactive", value: "inactive" },
+                ]}
+              />
+            </div>
+
+            {errors.form ? (
+              <Alert color="red" variant="light">
+                {errors.form}
+              </Alert>
+            ) : null}
+
+            <Group justify="flex-end">
+              <Button variant="default" onClick={handleClose}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                loading={updateCompanyMutation.isPending || isUploadingLogo}
+                disabled={isUploadingLogo}
+              >
+                Save
+              </Button>
+            </Group>
+          </Stack>
+        </form>
       )}
     </Modal>
   );

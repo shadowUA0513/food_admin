@@ -31,7 +31,7 @@ import { useAuth } from "../providers/AuthProvider";
 
 export function AdminLayout() {
   const [opened, { toggle, close }] = useDisclosure(false);
-  const { logout, phone, user } = useAuth();
+  const { logout, email, phone, user } = useAuth();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
@@ -120,9 +120,11 @@ export function AdminLayout() {
             <Paper withBorder radius="xl" p="md">
               <Group wrap="nowrap">
                 <div>
-                  <Text fw={700}>{user?.full_name}</Text>
+                  <Text fw={700}>
+                    {user?.full_name ?? user?.name ?? user?.email ?? "Admin"}
+                  </Text>
                   <Text size="sm" c="dimmed">
-                    {phone ?? t("layout.noPhone")}
+                    {email ?? phone ?? t("layout.noContact")}
                   </Text>
                 </div>
               </Group>

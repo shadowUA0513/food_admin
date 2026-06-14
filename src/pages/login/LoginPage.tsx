@@ -7,38 +7,51 @@ import {
   Select,
   Stack,
   Text,
+  TextInput,
   Title,
   useComputedColorScheme,
 } from "@mantine/core";
-import { IconLock, IconPhoneCall } from "@tabler/icons-react";
-import { useState } from "react";
+import { IconAt, IconLock, IconShieldLock } from "@tabler/icons-react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { isAppLanguage } from "../../i18n";
 import { useAuth } from "../../app/providers/AuthProvider";
-import { PhoneNumberInput } from "../../components/common/PhoneNumberInput";
-import {
-  hasCompleteUzbekistanPhone,
-  UZBEKISTAN_PHONE_PREFIX,
-} from "../../utils/phone";
 
 interface FormErrors {
-  phone?: string;
+  email?: string;
   password?: string;
+  mfaCode?: string;
   form?: string;
 }
 
+type LoginStep = "credentials" | "mfa";
+
 const MIN_PASSWORD_LENGTH = 6;
 
+function isValidEmail(value: string) {
+  return /^\S+@\S+\.\S+$/.test(value.trim());
+}
+
 export default function LoginPage() {
-  const { login, isLoading } = useAuth();
+  const { login, completeMfaLogin, isLoading, isAuthenticated } = useAuth();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const computedColorScheme = useComputedColorScheme("light");
   const isDark = computedColorScheme === "dark";
-  const [phone, setPhone] = useState(UZBEKISTAN_PHONE_PREFIX);
+  const [step, setStep] = useState<LoginStep>("credentials");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [mfaToken, setMfaToken] = useState("");
+  const [mfaCode, setMfaCode] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
   const clearFieldError = (field: keyof FormErrors) => {
     setErrors((current) => ({
       ...current,
@@ -47,13 +60,20 @@ export default function LoginPage() {
     }));
   };
 
-  const validate = () => {
+  const resetMfaState = () => {
+    setStep("credentials");
+    setMfaToken("");
+    setMfaCode("");
+    setErrors({});
+  };
+
+  const validateCredentials = () => {
     const nextErrors: FormErrors = {};
 
-    if (!phone.trim() || phone === UZBEKISTAN_PHONE_PREFIX) {
-      nextErrors.phone = t("login.phoneRequired");
-    } else if (!hasCompleteUzbekistanPhone(phone)) {
-      nextErrors.phone = t("login.phoneInvalidLength");
+    if (!email.trim()) {
+      nextErrors.email = t("login.emailRequired");
+    } else if (!isValidEmail(email)) {
+      nextErrors.email = t("login.emailInvalid");
     }
 
     if (!password.trim()) {
@@ -62,7 +82,7 @@ export default function LoginPage() {
       nextErrors.password = t("login.passwordTooShort");
     }
 
-    if (nextErrors.phone || nextErrors.password) {
+    if (nextErrors.email || nextErrors.password) {
       nextErrors.form = t("login.formError");
     }
 
@@ -71,15 +91,50 @@ export default function LoginPage() {
     return Object.keys(nextErrors).length === 0;
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const validateMfa = () => {
+    const nextErrors: FormErrors = {};
+    const value = mfaCode.trim();
+
+    if (!value) {
+      nextErrors.mfaCode = t("login.mfaCodeRequired");
+    } else if (!/^\d{6}$/.test(value)) {
+      nextErrors.mfaCode = t("login.mfaCodeInvalid");
+    }
+
+    if (nextErrors.mfaCode) {
+      nextErrors.form = t("login.formError");
+    }
+
+    setErrors(nextErrors);
+
+    return Object.keys(nextErrors).length === 0;
+  };
+
+  const handleCredentialsSubmit = async (
+    event: React.FormEvent<HTMLFormElement>,
+  ) => {
     event.preventDefault();
 
-    if (!validate()) {
+    if (!validateCredentials()) {
       return;
     }
 
     try {
-      await login({ phone, password });
+      const result = await login({
+        email: email.trim(),
+        password,
+      });
+
+      if (result.status === "mfa_required") {
+        setStep("mfa");
+        setMfaToken(result.mfaToken);
+        setMfaCode("");
+        setErrors({
+          form: t("login.mfaRequired"),
+        });
+        return;
+      }
+
       navigate("/", { replace: true });
     } catch (error) {
       setErrors((current) => ({
@@ -88,6 +143,30 @@ export default function LoginPage() {
       }));
     }
   };
+
+  const handleMfaSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!validateMfa()) {
+      return;
+    }
+
+    try {
+      await completeMfaLogin({
+        mfa_token: mfaToken,
+        code: mfaCode.trim(),
+      });
+
+      navigate("/", { replace: true });
+    } catch (error) {
+      setErrors((current) => ({
+        ...current,
+        form: error instanceof Error ? error.message : t("login.formError"),
+      }));
+    }
+  };
+
+  const showMfa = step === "mfa";
 
   return (
     <Box
@@ -147,16 +226,16 @@ export default function LoginPage() {
             <Stack gap="xl">
               <Stack gap={6} ta="center">
                 <Title order={2} fw={800}>
-                  {t("login.title")}
+                  {showMfa ? t("login.mfaTitle") : t("login.title")}
                 </Title>
                 <Text c="dimmed" size="sm">
-                  {t("login.subtitle")}
+                  {showMfa ? t("login.mfaSubtitle") : t("login.subtitle")}
                 </Text>
               </Stack>
 
               <Paper
                 component="form"
-                onSubmit={handleSubmit}
+                onSubmit={showMfa ? handleMfaSubmit : handleCredentialsSubmit}
                 radius="lg"
                 p={{ base: "md", sm: "lg" }}
                 bg={isDark ? "dark.6" : "gray.0"}
@@ -167,45 +246,20 @@ export default function LoginPage() {
                 }}
               >
                 <Stack gap="md">
-                  <PhoneNumberInput
-                    label={t("login.phoneLabel")}
-                    placeholder={t("login.phonePlaceholder")}
-                    value={phone}
-                    onChange={(value) => {
-                      setPhone(value);
-                      clearFieldError("phone");
-                    }}
-                    error={errors.phone}
-                    leftSection={<IconPhoneCall size={16} stroke={1.8} />}
-                    size="md"
-                    radius="md"
-                    styles={{
-                      input: {
-                        backgroundColor: isDark
-                          ? "var(--mantine-color-dark-5)"
-                          : undefined,
-                        borderColor: isDark
-                          ? "rgba(255, 255, 255, 0.12)"
-                          : undefined,
-                      },
-                    }}
-                    required
-                  />
-
-                  <Stack gap={6}>
-                    <PasswordInput
-                      label={t("login.passwordLabel")}
-                      placeholder={t("login.passwordPlaceholder")}
-                      value={password}
+                  {showMfa ? (
+                    <TextInput
+                      label={t("login.mfaCodeLabel")}
+                      placeholder={t("login.mfaCodePlaceholder")}
+                      value={mfaCode}
                       onChange={(event) => {
-                        setPassword(event.currentTarget.value);
-                        clearFieldError("password");
+                        setMfaCode(event.currentTarget.value);
+                        clearFieldError("mfaCode");
                       }}
-                      error={errors.password}
-                      leftSection={<IconLock size={16} stroke={1.8} />}
-                      autoComplete="current-password"
+                      error={errors.mfaCode}
+                      leftSection={<IconShieldLock size={16} stroke={1.8} />}
                       size="md"
                       radius="md"
+                      autoComplete="one-time-code"
                       styles={{
                         input: {
                           backgroundColor: isDark
@@ -218,7 +272,61 @@ export default function LoginPage() {
                       }}
                       required
                     />
-                  </Stack>
+                  ) : (
+                    <>
+                      <TextInput
+                        label={t("login.emailLabel")}
+                        placeholder={t("login.emailPlaceholder")}
+                        value={email}
+                        onChange={(event) => {
+                          setEmail(event.currentTarget.value);
+                          clearFieldError("email");
+                        }}
+                        error={errors.email}
+                        leftSection={<IconAt size={16} stroke={1.8} />}
+                        autoComplete="email"
+                        size="md"
+                        radius="md"
+                        styles={{
+                          input: {
+                            backgroundColor: isDark
+                              ? "var(--mantine-color-dark-5)"
+                              : undefined,
+                            borderColor: isDark
+                              ? "rgba(255, 255, 255, 0.12)"
+                              : undefined,
+                          },
+                        }}
+                        required
+                      />
+
+                      <PasswordInput
+                        label={t("login.passwordLabel")}
+                        placeholder={t("login.passwordPlaceholder")}
+                        value={password}
+                        onChange={(event) => {
+                          setPassword(event.currentTarget.value);
+                          clearFieldError("password");
+                        }}
+                        error={errors.password}
+                        leftSection={<IconLock size={16} stroke={1.8} />}
+                        autoComplete="current-password"
+                        size="md"
+                        radius="md"
+                        styles={{
+                          input: {
+                            backgroundColor: isDark
+                              ? "var(--mantine-color-dark-5)"
+                              : undefined,
+                            borderColor: isDark
+                              ? "rgba(255, 255, 255, 0.12)"
+                              : undefined,
+                          },
+                        }}
+                        required
+                      />
+                    </>
+                  )}
 
                   {errors.form ? (
                     <Text c="red.6" size="sm">
@@ -226,15 +334,28 @@ export default function LoginPage() {
                     </Text>
                   ) : null}
 
-                  <Button
-                    type="submit"
-                    fullWidth
-                    size="md"
-                    radius="md"
-                    loading={isLoading}
-                  >
-                    {t("login.submit")}
-                  </Button>
+                  <Stack gap="xs">
+                    <Button
+                      type="submit"
+                      fullWidth
+                      size="md"
+                      radius="md"
+                      loading={isLoading}
+                    >
+                      {showMfa ? t("login.verifyMfa") : t("login.submit")}
+                    </Button>
+
+                    {showMfa ? (
+                      <Button
+                        type="button"
+                        variant="default"
+                        fullWidth
+                        onClick={resetMfaState}
+                      >
+                        {t("login.backToLogin")}
+                      </Button>
+                    ) : null}
+                  </Stack>
                 </Stack>
               </Paper>
             </Stack>
