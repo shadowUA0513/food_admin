@@ -209,10 +209,7 @@ export default function AddCompanies() {
       nextErrors.long = "Longitude must be between -180 and 180.";
     }
 
-    if (
-      !Number.isFinite(form.min_order_distance) ||
-      form.min_order_distance < 0
-    ) {
+    if (!Number.isFinite(form.min_order_distance) || form.min_order_distance < 0) {
       nextErrors.min_order_distance =
         "Minimum order distance must be 0 or more.";
     }
