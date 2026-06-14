@@ -90,6 +90,32 @@ const ORDER_TYPE_OPTIONS = [
   { value: "delivery-to-organization", label: "Delivery to organization" },
 ];
 
+// function SectionCard({
+//   title,
+//   description,
+//   children,
+// }: {
+//   title: string;
+//   description?: string;
+//   children: ReactNode;
+// }) {
+//   return (
+//     <Paper withBorder radius="lg" p="lg">
+//       <Stack gap="md">
+//         <div>
+//           <Title order={5}>{title}</Title>
+//           {description ? (
+//             <Text c="dimmed" size="sm" mt={4}>
+//               {description}
+//             </Text>
+//           ) : null}
+//         </div>
+//         {children}
+//       </Stack>
+//     </Paper>
+//   );
+// }
+
 export default function AddCompanies() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -146,7 +172,9 @@ export default function AddCompanies() {
       }));
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Failed to upload the selected image.";
+        error instanceof Error
+          ? error.message
+          : "Failed to upload the selected image.";
 
       setErrors((current) => ({
         ...current,
@@ -415,7 +443,9 @@ export default function AddCompanies() {
               setForm((current) => ({
                 ...current,
                 telegram_chat_id:
-                  typeof value === "number" && Number.isFinite(value) ? value : null,
+                  typeof value === "number" && Number.isFinite(value)
+                    ? value
+                    : null,
               }));
               setErrors((current) => ({
                 ...current,
@@ -460,7 +490,9 @@ export default function AddCompanies() {
             onChange={handleLogoFileChange}
             error={errors.logo_url}
             description={
-              isUploadingLogo ? "Uploading image..." : "Select an image file to upload."
+              isUploadingLogo
+                ? "Uploading image..."
+                : "Select an image file to upload."
             }
           />
 
